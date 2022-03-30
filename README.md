@@ -1,2 +1,5 @@
 # SickBot
- Discord Bot for the SickMC Discord Server
+Discord bot running on [SickMC Discord]("discord.sickmc.net")
+
+## License
+MIT License
