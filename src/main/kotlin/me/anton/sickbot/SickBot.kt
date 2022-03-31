@@ -7,10 +7,11 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.on
 import dev.kord.core.supplier.EntitySupplyStrategy
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.kord.gateway.Intent
+import dev.kord.gateway.Intents
+import dev.kord.gateway.PrivilegedIntent
 import kotlinx.coroutines.runBlocking
+import me.anton.sickbot.modules.ModuleHandler
 import org.bson.Document
 
 class SickBot {
@@ -20,37 +21,28 @@ class SickBot {
     }
 
     var kord: Kord = Startup.instance.bot
-    private val scope = CoroutineScope(Dispatchers.Default)
-    lateinit var mainGuild: Guild
-    lateinit var staffGuild: Guild
     var rankDocuments = Startup.instance.rankDocuments
     var configDoc: Document = Startup.instance.document
+    private val moduleHandler: ModuleHandler = ModuleHandler()
 
     init {
         instance = this
-
-        setupBot()
     }
 
-    private fun setupBot(){
-        scope.launch {
-            kord.login()
-            kord.on<ReadyEvent> {
-                kord.editPresence {
-                    status = PresenceStatus.Online
-                    playing("on play.sickmc.net")
 
-                    mainGuild = kord.getGuild(Snowflake(getConfigValue("mainGuildID")), EntitySupplyStrategy.rest)!!
-                    staffGuild = kord.getGuild(Snowflake(getConfigValue("secondGuildID")), EntitySupplyStrategy.rest)!!
-                }
-
-                sendPrefix()
+    suspend fun setupBot(){
+        kord.on<ReadyEvent> {
+            moduleHandler.register()
+            kord.editPresence {
+                status = PresenceStatus.Online
+                playing("on play.sickmc.net")
             }
 
+            handleConsole()
         }
     }
 
-    private fun stopBot(){
+    private suspend fun stopBot(){
         runBlocking {
             kord.editPresence {
                 status = PresenceStatus.Offline
@@ -59,7 +51,7 @@ class SickBot {
         }
     }
 
-    private fun sendPrefix(){
+    private suspend fun handleConsole(){
         while (true){
             if (readln() == "stop")stopBot()
         }
@@ -70,9 +62,17 @@ class SickBot {
     }
 
     fun getIdOfRankGroup(name: String): Snowflake{
-        val rankDoc = rankDocuments[2].get("groups", Document::class.java).get(name, Document::class.java)
+        val rankDoc = rankDocuments[1].get("groups", Document::class.java).get(name, Document::class.java)
 
         return Snowflake(rankDoc.getString("discordRoleID"))
+    }
+
+    suspend fun getMainGuild(): Guild{
+        return kord.getGuild(Snowflake(getConfigValue("mainGuildID")), EntitySupplyStrategy.rest)!!
+    }
+
+    suspend fun getSecondGuild(): Guild{
+        return kord.getGuild(Snowflake(getConfigValue("secondGuildID")), EntitySupplyStrategy.rest)!!
     }
 
 }

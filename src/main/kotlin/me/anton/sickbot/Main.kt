@@ -1,7 +1,7 @@
 package me.anton.sickbot
 
-fun main(){
+suspend fun main(){
 
-    Startup()
+    Startup().start()
 
 }

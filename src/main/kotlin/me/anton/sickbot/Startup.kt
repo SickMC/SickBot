@@ -17,44 +17,38 @@ class Startup {
         lateinit var instance: Startup
     }
 
-    private val scope = CoroutineScope(Dispatchers.Default)
-
     init {
         instance = this
-        start()
     }
 
     lateinit var document: Document
     lateinit var bot: Kord
     lateinit var rankDocuments: List<Document>
 
-    private fun start(){
+    suspend fun start(){
         val connection = MongoConnection()
-        scope.launch {
-            connection.createConnection()
-            document = connection.configColl.findOne(Filters.eq("type", "discordbot"))!!
-            rankDocuments = listOf(
-                connection.configColl.findOne(Filters.eq("type", "ranks"))!!,
-                connection.configColl.findOne(Filters.eq("type", "rankgroups"))!!)
+        document = connection.configColl.findOne(Filters.eq("type", "discordbot"))!!
+        rankDocuments = listOf(
+            connection.configColl.findOne(Filters.eq("type", "ranks"))!!,
+            connection.configColl.findOne(Filters.eq("type", "rankgroups"))!!)
 
-            bot = Kord(document.getString("token")){
-                cache {
-                    users { cache, description ->
-                        MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
-                    }
-                    messages { cache, description ->
-                        MapEntryCache(cache, description, MapLikeCollection.lruLinkedHashMap(maxSize = 100))
-                    }
-                    members { cache, description ->
-                        MapEntryCache(cache, description, MapLikeCollection.none())
-                    }
-                    guilds { cache, description ->
-                        MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
-                    }
+        bot = Kord(document.getString("token")){
+            cache {
+                users { cache, description ->
+                    MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
+                }
+                messages { cache, description ->
+                    MapEntryCache(cache, description, MapLikeCollection.lruLinkedHashMap(maxSize = 100))
+                }
+                members { cache, description ->
+                    MapEntryCache(cache, description, MapLikeCollection.none())
+                }
+                guilds { cache, description ->
+                    MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
                 }
             }
-            SickBot()
         }
+        SickBot().setupBot()
     }
 
 }
