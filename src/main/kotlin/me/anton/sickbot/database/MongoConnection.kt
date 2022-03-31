@@ -14,6 +14,7 @@ import org.litote.kmongo.reactivestreams.KMongo
 
 class MongoConnection {
 
+    private val scope = CoroutineScope(Dispatchers.Default)
     lateinit var client: CoroutineClient
     lateinit var configColl: CoroutineCollection<org.bson.Document>
     lateinit var discordPlayerColl: CoroutineCollection<org.bson.Document>
@@ -21,7 +22,7 @@ class MongoConnection {
     fun createConnection(){
         val credentials = FileUtils.getFileAsDocument("mongo")
 
-        runBlocking {
+        scope.launch {
             val uri = "mongodb://${credentials.getString("username")}:${credentials.getString("password")}@${credentials.getString("address")}:${credentials.getInteger("port")}/?authSource=${credentials.getString("databaseName")}"
             val connectionString = ConnectionString(uri)
             val mongoSettings = MongoClientSettings.builder().applyConnectionString(connectionString).build()

@@ -5,7 +5,7 @@ import dev.kord.cache.map.MapLikeCollection
 import dev.kord.cache.map.internal.MapEntryCache
 import dev.kord.cache.map.lruLinkedHashMap
 import dev.kord.core.Kord
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import me.anton.sickbot.database.MongoConnection
 import me.anton.sickbot.utils.FileUtils
 import org.bson.Document
@@ -16,6 +16,8 @@ class Startup {
     companion object{
         lateinit var instance: Startup
     }
+
+    private val scope = CoroutineScope(Dispatchers.Default)
 
     init {
         instance = this
@@ -28,10 +30,8 @@ class Startup {
 
     private fun start(){
         val connection = MongoConnection()
-        runBlocking {
+        scope.launch {
             connection.createConnection()
-        }
-        runBlocking {
             document = connection.configColl.findOne(Filters.eq("type", "discordbot"))!!
             rankDocuments = listOf(
                 connection.configColl.findOne(Filters.eq("type", "ranks"))!!,

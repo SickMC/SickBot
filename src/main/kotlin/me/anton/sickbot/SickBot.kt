@@ -4,6 +4,8 @@ import dev.kord.common.entity.PresenceStatus
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.entity.Guild
+import dev.kord.core.event.gateway.ReadyEvent
+import dev.kord.core.on
 import dev.kord.core.supplier.EntitySupplyStrategy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,37 +19,34 @@ class SickBot {
         lateinit var instance: SickBot
     }
 
-    var kord: Kord
+    var kord: Kord = Startup.instance.bot
     private val scope = CoroutineScope(Dispatchers.Default)
     lateinit var mainGuild: Guild
     lateinit var staffGuild: Guild
     var rankDocuments = Startup.instance.rankDocuments
-    var configDoc: Document
+    var configDoc: Document = Startup.instance.document
 
     init {
         instance = this
-        configDoc = Startup.instance.document
-        kord = Startup.instance.bot
-        scope.launch {
-            mainGuild = kord.getGuild(Snowflake(getConfigValue("mainGuildID")), EntitySupplyStrategy.rest)!!
-            staffGuild = kord.getGuild(Snowflake(getConfigValue("secondGuildID")), EntitySupplyStrategy.rest)!!
-        }
 
         setupBot()
     }
 
     private fun setupBot(){
         scope.launch {
-            kord.editPresence {
-                status = PresenceStatus.Online
-                playing("fortnät")
-            }
-        }
-
-        sendPrefix()
-
-        runBlocking {
             kord.login()
+            kord.on<ReadyEvent> {
+                kord.editPresence {
+                    status = PresenceStatus.Online
+                    playing("on play.sickmc.net")
+
+                    mainGuild = kord.getGuild(Snowflake(getConfigValue("mainGuildID")), EntitySupplyStrategy.rest)!!
+                    staffGuild = kord.getGuild(Snowflake(getConfigValue("secondGuildID")), EntitySupplyStrategy.rest)!!
+                }
+
+                sendPrefix()
+            }
+
         }
     }
 
