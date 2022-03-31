@@ -3,8 +3,11 @@ package me.anton.sickbot.modules
 import dev.kord.common.Color
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
+import dev.kord.common.entity.Snowflake
+import dev.kord.common.entity.optional.OptionalBoolean
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.behavior.channel.createMessage
+import dev.kord.core.behavior.interaction.response.edit
 import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
@@ -60,7 +63,7 @@ class Rules {
             this.content = "**Click here to get access to the server!**"
             this.actionRow {
                 interactionButton(ButtonStyle.Success, "rule_accept"){
-                    emoji = DiscordPartialEmoji(name = "U+2705")
+                    emoji = DiscordPartialEmoji(Snowflake(959175780770918411), "checkmark")
                 }
             }
         }
@@ -68,22 +71,22 @@ class Rules {
 
     private fun handleInteraction(){
         SickBot.instance.kord.on<ButtonInteractionCreateEvent> {
+            val response = interaction.deferEphemeralMessage()
             if (interaction.componentId != "rule_accept") return@on
-            if (!SickBot.instance.getMainGuild().getMember(interaction.user.id).roleIds.contains(SickBot.instance.getIdOfRankGroup("Player")))return@on
+            if (SickBot.instance.getMainGuild().getMember(interaction.user.id).roleIds.contains(SickBot.instance.getIdOfRankGroup("Player"))){
+                response.edit { content = "**Already accepted the rules!**\nCannot accept the rules twice!" }
+                return@on
+            }
             SickBot.instance.getMainGuild().getMember(interaction.user.id).addRole(SickBot.instance.getIdOfRankGroup("Player"), "Accepted the rules!")
+            response.edit { content = "**Accepted the rules!**\nHave fun!" }
         }
     }
 
     private fun handleRuleCreate(){
         SickBot.instance.kord.on<MessageCreateEvent> {
-            println("asdasdasd")
-            println("Content: ${message.content}")
             if (message.content != "!rules")return@on
-            print("rule")
             if (message.author!!.isBot)return@on
-            print("bot")
             if (!message.author!!.asMember(SickBot.instance.getMainGuild().id).roleIds.contains(SickBot.instance.getIdOfRankGroup("Administration")))return@on
-            print("amin")
             sendRuleMessage(message.channel.fetchChannel())
             message.delete("Rule message was send")
         }

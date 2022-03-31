@@ -29,16 +29,21 @@ class SickBot {
         instance = this
     }
 
-
     suspend fun setupBot(){
+        moduleHandler.register()
         kord.on<ReadyEvent> {
-            moduleHandler.register()
+            println("Bot is ready")
             kord.editPresence {
                 status = PresenceStatus.Online
                 playing("on play.sickmc.net")
             }
 
             handleConsole()
+        }
+
+        kord.login {
+            @OptIn(PrivilegedIntent::class)
+            intents = Intents.all + Intent.GuildPresences
         }
     }
 
