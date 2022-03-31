@@ -1,6 +1,6 @@
-/build/
-/.idea/
-/.gradle/
+build/
+.idea/
+.gradle/
 
 *.xml
 *.jar
