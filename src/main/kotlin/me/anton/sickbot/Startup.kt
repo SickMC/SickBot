@@ -5,11 +5,8 @@ import dev.kord.cache.map.MapLikeCollection
 import dev.kord.cache.map.internal.MapEntryCache
 import dev.kord.cache.map.lruLinkedHashMap
 import dev.kord.core.Kord
-import kotlinx.coroutines.*
-import me.anton.sickbot.database.MongoConnection
-import me.anton.sickbot.utils.FileUtils
+import me.anton.sickbot.utils.MongoConnection
 import org.bson.Document
-import java.util.Arrays
 
 class Startup {
 

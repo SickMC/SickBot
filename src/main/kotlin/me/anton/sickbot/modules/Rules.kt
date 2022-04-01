@@ -1,21 +1,25 @@
 package me.anton.sickbot.modules
 
 import dev.kord.common.Color
-import dev.kord.common.entity.ButtonStyle
-import dev.kord.common.entity.DiscordPartialEmoji
-import dev.kord.common.entity.Snowflake
+import dev.kord.common.entity.*
 import dev.kord.common.entity.optional.OptionalBoolean
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.interaction.response.edit
+import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
+import dev.kord.core.supplier.EntitySupplyStrategy
+import dev.kord.rest.Image
+import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.actionRow
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.json.JsonNull.content
 import me.anton.sickbot.SickBot
+import me.anton.sickbot.utils.EmbedVariables
 
 class Rules {
 
@@ -26,9 +30,9 @@ class Rules {
 
     private suspend fun sendRuleMessage(channel: MessageChannel) {
         channel.createEmbed {
-            this.color = Color(237, 142, 26)
-            this.title = "**Discord Rules | SickMC**"
-            this.description = """
+            color = EmbedVariables.color()
+            title = "**Discord Rules | SickMC**"
+            description = """
                 **Verhalten**
                 Textchats:
                 - Bitte nur auf Deutsch oder Englisch schreiben!
@@ -57,6 +61,7 @@ class Rules {
                 - Der Nickname darf nicht aus Sonderzeichen bestehen.
                 """.trimIndent()
 
+            footer = EmbedVariables.selfFooter()
         }
 
         channel.createMessage {
@@ -71,14 +76,16 @@ class Rules {
 
     private fun handleInteraction(){
         SickBot.instance.kord.on<ButtonInteractionCreateEvent> {
-            val response = interaction.deferEphemeralMessage()
+            val response = interaction.deferEphemeralResponse()
             if (interaction.componentId != "rule_accept") return@on
             if (SickBot.instance.getMainGuild().getMember(interaction.user.id).roleIds.contains(SickBot.instance.getIdOfRankGroup("Player"))){
-                response.edit { content = "**Already accepted the rules!**\nCannot accept the rules twice!" }
+                response.respond {
+                    content = "**Already accepted the rules!**\nCannot accept the rules twice!"
+                }
                 return@on
             }
             SickBot.instance.getMainGuild().getMember(interaction.user.id).addRole(SickBot.instance.getIdOfRankGroup("Player"), "Accepted the rules!")
-            response.edit { content = "**Accepted the rules!**\nHave fun!" }
+            response.respond { content = "**Accepted the rules!**\nHave fun!" }
         }
     }
 

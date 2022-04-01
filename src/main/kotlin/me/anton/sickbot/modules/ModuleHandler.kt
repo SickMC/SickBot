@@ -4,6 +4,7 @@ class ModuleHandler {
 
     fun register(){
         Rules()
+        Lobby()
     }
 
 }

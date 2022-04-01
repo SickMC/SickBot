@@ -1,4 +1,4 @@
-package me.anton.sickbot.database
+package me.anton.sickbot.utils
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
@@ -15,9 +15,9 @@ class MongoConnection {
     private val uri = "mongodb://${credentials.getString("username")}:${credentials.getString("password")}@${credentials.getString("address")}:${credentials.getInteger("port")}/?authSource=${credentials.getString("databaseName")}"
     private val settings = MongoClientSettings.builder().applyConnectionString(ConnectionString(uri)).build()
 
-    val client: CoroutineClient = KMongo.createClient(settings).coroutine
+    private val client: CoroutineClient = KMongo.createClient(settings).coroutine
 
-    val db = client.getDatabase(credentials.getString("databaseName"))
+    private val db = client.getDatabase(credentials.getString("databaseName"))
     val configColl: CoroutineCollection<Document> = db.getCollection("config")
     val discordPlayerColl: CoroutineCollection<Document> = db.getCollection("discordPlayer")
 
