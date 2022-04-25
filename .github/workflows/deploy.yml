@@ -18,7 +18,7 @@ jobs:
       - name: Login
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        run: docker login docker.pkg.github.com --username btwonion --password "$GITHUB_TOKEN"
+        run: docker login docker.pkg.github.com --username phanatic --password "$GITHUB_TOKEN"
       - name: Build and Tag
         run: docker build -t docker.pkg.github.com/SickMC/SickBot/SickBot:latest -t docker.pkg.github.com/SickMC/SickBot/SickBot:"$GITHUB_SHA" .
       - name: Push
