@@ -1,4 +1,4 @@
-package me.anton.sickbot.modules
+package net.sickmc.sickbot.modules
 
 class ModuleHandler {
 

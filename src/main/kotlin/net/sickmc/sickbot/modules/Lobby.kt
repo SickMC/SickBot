@@ -1,4 +1,4 @@
-package me.anton.sickbot.modules
+package net.sickmc.sickbot.modules
 
 import dev.kord.common.entity.MessageType
 import dev.kord.common.entity.Snowflake
@@ -9,13 +9,13 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.embed
 import kotlinx.datetime.Clock
-import me.anton.sickbot.SickBot
-import me.anton.sickbot.utils.EmbedVariables
+import net.sickmc.sickbot.SickBot
+import net.sickmc.sickbot.kord
+import net.sickmc.sickbot.mainGuild
+import net.sickmc.sickbot.utils.EmbedVariables
+import net.sickmc.sickbot.utils.config
 
 class Lobby {
-
-    private val kord = SickBot.instance.kord
-    private val main = SickBot.instance
 
     init {
         handleMemberJoin()
@@ -27,7 +27,7 @@ class Lobby {
 
         kord.on<MessageCreateEvent> {
             if (!allowed.contains(message.type))return@on
-            val lobby = main.getMainGuild().getChannel(Snowflake(main.getConfigValue("lobbyChannel"))) as? GuildMessageChannel ?: return@on
+            val lobby = mainGuild.getChannel(Snowflake(config.getString("lobbyChannel"))) as? GuildMessageChannel ?: return@on
             val author = message.getAuthorAsMember()
             val descriptionBuilder: StringBuilder = StringBuilder("<a:party:959481387092676618> A very cool person just boosted the server!!!\nAnd his name is " + author!!.mention + "\n")
             when(message.type){
@@ -38,7 +38,7 @@ class Lobby {
             descriptionBuilder.append(" <a:party:959481387092676618>")
             lobby.createMessage {
                 embed {
-                    title = "**Booooost | SickMC**"
+                    title = EmbedVariables.title("Booooost")
                     description = descriptionBuilder.toString()
                     footer = EmbedVariables.selfFooter()
                     timestamp = Clock.System.now()
@@ -50,12 +50,10 @@ class Lobby {
 
     private fun handleMemberJoin(){
         kord.on<MemberJoinEvent> {
-            val lobby =
-                main.getMainGuild().getChannel(Snowflake(main.getConfigValue("lobbyChannel"))) as? GuildMessageChannel
-                    ?: return@on
+            val lobby = mainGuild.getChannel(Snowflake(config.getString("lobbyChannel"))) as? GuildMessageChannel ?: return@on
             lobby.createMessage {
                 embed {
-                    title = "**Join | SickMC**"
+                    title = EmbedVariables.title("Join")
                     description =
                         "<a:party:959481387092676618> ${member.mention} joined the server <a:party:959481387092676618>!"
                     footer = EmbedVariables.userFooter(member)

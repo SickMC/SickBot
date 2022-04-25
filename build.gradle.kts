@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.6.21"
 }
 
 group = "me.anton"
@@ -9,15 +9,11 @@ repositories {
     mavenCentral()
 
     maven("https://oss.sonatype.org/content/repositories/snapshots")
-    maven {
-        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-        name = "ktor-eap"
-    }
 }
 
 dependencies {
     implementation("dev.kord:kord-core:0.8.0-M12")
-    implementation("org.litote.kmongo:kmongo-coroutine:4.5.0")
+    implementation("org.litote.kmongo:kmongo-coroutine:4.5.1")
     implementation("dev.kord.x:emoji:0.5.0")
-    implementation("org.slf4j:slf4j-simple:1.7.30")
+    implementation("io.github.crackthecodeabhi:kreds:0.7")
 }

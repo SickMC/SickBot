@@ -1,4 +1,4 @@
-package me.anton.sickbot
+package net.sickmc.sickbot
 
 suspend fun main(){
 
