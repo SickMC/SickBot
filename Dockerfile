@@ -1,10 +1,9 @@
-FROM openjdk:17 as Builder
+FROM openjdk:17-slim AS builder
 
-WORKDIR /bot
-
+WORKDIR "/usr/src/SickBot/"
 COPY . .
 RUN chmod +x ./gradlew
-RUN ./gradlew installDist --no-deamon
+RUN ./gradlew installDist --no-daemon
 
 COPY . /bot
 
