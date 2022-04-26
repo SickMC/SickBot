@@ -9,4 +9,4 @@ FROM openjdk:17-jre
 
 COPY --from=builder build/install/SickBot .
 
-ENTRYPOINT ["bin/SickBot"]
+CMD ["bin/SickBot"]
