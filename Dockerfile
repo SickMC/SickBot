@@ -1,11 +1,10 @@
-FROM openjdk:17-slim AS builder
+FROM openjdk:17-slim as builder
 
-WORKDIR "/usr/src/SickBot/"
 COPY . .
 RUN chmod +x ./gradlew
-RUN ./gradlew installDist --no-daemon
+RUN ./gradlew  --no-daemon installDist
 
-WORKDIR /app/
-COPY --from=builder /usr/src/SickBot/build/install/SickBot/ .
+WORKDIR /user/app/
+COPY --from=builder build/install/SickBot ./
 
-CMD ["./bin/SickBot"]
+ENTRYPOINT ["/user/app/bin/SickBot"]
