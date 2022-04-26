@@ -1,7 +1,7 @@
 FROM openjdk:17-jdk as builder
 
 COPY . .
-WORKDIR /usr/src/SickBot/
+WORKDIR /user/src/SickBot/
 RUN chmod +x ./gradlew
 RUN ./gradlew installDist --no-daemon 
 
