@@ -5,7 +5,7 @@ WORKDIR /src
 RUN chmod +x ./gradlew
 RUN ./gradlew --no-daemon installDist
 
-FROM openjdk:17-jre
+FROM openjdk:17
 
 COPY --from=builder build/install/SickBot/ .
 
