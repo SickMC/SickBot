@@ -5,6 +5,7 @@ COPY . .
 RUN chmod +x ./gradlew
 RUN ./gradlew installDist --no-daemon
 
+WORKDIR /app/
 COPY --from=builder /usr/src/SickBot/build/install/SickBot/ .
 
 CMD ["./bin/SickBot"]
