@@ -8,6 +8,5 @@ RUN ./gradlew installDist --no-daemon
 FROM opendjk:17-jre-slim
 
 WORKDIR /bot/
-COPY --from=builder /usr/src/SickBot/build/install/SickBot/ .
 
 CMD ["./bin/SickBot"]
