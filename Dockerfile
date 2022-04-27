@@ -1,6 +1,6 @@
 ARG BUILD_DIR="/usr/src/SickBot/"
 
-FROM openjdk:17-jdk-slim AS builder
+FROM openjdk:17-jdk AS builder
 
 ARG BUILD_DIR
 
