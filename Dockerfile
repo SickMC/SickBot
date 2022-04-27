@@ -10,11 +10,11 @@ RUN chmod +x ./gradlew
 RUN ./gradlew installDist --no-daemon
 
 
-FROM openjdk:17-jre-slim
+FROM openjdk:17-jre
 
 ARG BUILD_DIR
 
 WORKDIR /app/
 COPY --from=builder $BUILD_DIR/build/install/SickBot/ .
 
-CMD ["./bin/BlauBot"]
+CMD ["./bin/SickBot"]
