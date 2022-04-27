@@ -7,6 +7,6 @@ RUN ./gradlew installDist --no-daemon
 FROM openjdk:17
 
 WORKDIR /app/
-COPY --from=builder build/install/SickBot/ ./
+COPY --from=builder build/install/SickBot/ .
 
-ENTRYPOINT ["build/install/SickBot/bin/SickBot"]
+CMD ["./bin/SickBot"]
