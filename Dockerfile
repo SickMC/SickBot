@@ -1,6 +1,6 @@
 ARG BUILD_DIR="/usr/src/SickBot/"
 
-FROM openjdk:17-jdk AS builder
+FROM gradle:7.4.2 AS builder
 
 ARG BUILD_DIR
 
@@ -9,8 +9,7 @@ COPY . .
 RUN chmod +x ./gradlew
 RUN ./gradlew installDist --no-daemon
 
-
-FROM openjdk:17-slim
+FROM openjdk:17
 
 ARG BUILD_DIR
 
