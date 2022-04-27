@@ -9,6 +9,4 @@ FROM openjdk:17
 WORKDIR /app/
 COPY --from=builder build/install/SickBot/ ./
 
-WORKDIR /build/install/SickBot/bin/
-
-CMD ["./SickBot"]
+ENTRYPOINT ["/user/app/bin/SickBot"]
