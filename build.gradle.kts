@@ -18,3 +18,17 @@ dependencies {
     implementation("dev.kord.x:emoji:0.5.0")
     implementation("io.github.crackthecodeabhi:kreds:0.7")
 }
+
+tasks{
+
+    val pushToServer by registering(Exec::class){
+        dependsOn(installDist)
+        group = "push"
+        commandLine("wsl", "rsync", "-av", "/mnt/c/Users/anton/Desktop/Ordner/Development/SickNetwork/SickBot/build/install/SickBot/", "node1:/home/sickmc/network/bot")
+    }
+
+}
+
+application{
+    mainClass.set("net.sickmc.sickbot.MainKt")
+}
