@@ -14,13 +14,12 @@ import net.sickmc.sickbot.mainGuild
 import net.sickmc.sickbot.utils.EmbedVariables
 import net.sickmc.sickbot.utils.RoleIDs
 
-class Rules {
+object Rules {
 
-    init {
+    fun register(){
         handleInteraction()
         handleRuleCreate()
     }
-
     private suspend fun sendRuleMessage(channel: MessageChannel) {
         channel.createEmbed {
             color = EmbedVariables.color()
@@ -83,7 +82,6 @@ class Rules {
 
         }
     }
-
     private fun handleRuleCreate() {
         kord.on<MessageCreateEvent> {
             if (message.content != "!rules") return@on
@@ -93,5 +91,4 @@ class Rules {
             message.delete("Rule message was send")
         }
     }
-
 }

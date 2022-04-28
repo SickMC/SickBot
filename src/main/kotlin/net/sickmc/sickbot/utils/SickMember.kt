@@ -33,8 +33,11 @@ class SickMember(val id: Snowflake, val document: Document?) {
         var uuid:UUID? = null
         databaseScope.launch {
             val document: Document? = playerColl.findOne(Filters.eq("discordID", id.toString()))
-            if (document == null) uuid = null
-            uuid = UUID.fromString(document?.getString("uuid"))
+            if (document == null){
+                uuid = null
+                return@launch
+            }
+            uuid = UUID.fromString(document.getString("uuid"))
         }
         return uuid
     }

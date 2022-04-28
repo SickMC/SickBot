@@ -2,9 +2,9 @@ package net.sickmc.sickbot.utils
 
 import dev.kord.common.Color
 import dev.kord.core.entity.Member
+import dev.kord.core.entity.User
 import dev.kord.core.supplier.EntitySupplyStrategy
 import dev.kord.rest.builder.message.EmbedBuilder
-import net.sickmc.sickbot.SickBot
 import net.sickmc.sickbot.kord
 
 object EmbedVariables {
@@ -18,11 +18,10 @@ object EmbedVariables {
         footerbuilder.text = "SickMC • Requested by SickMC"
         return footerbuilder
     }
-
-    fun userFooter(member: Member): EmbedBuilder.Footer {
+    fun userFooter(user: User): EmbedBuilder.Footer{
         val footerbuilder = EmbedBuilder.Footer()
-        footerbuilder.icon = member.avatar?.url
-        footerbuilder.text = "SickMC • Requested by ${member.username}#${member.discriminator}"
+        footerbuilder.icon = user.avatar?.url
+        footerbuilder.text = "SickMC • Requested by ${user.username}#${user.discriminator}"
         return footerbuilder
     }
 

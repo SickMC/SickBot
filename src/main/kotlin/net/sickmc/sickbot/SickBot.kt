@@ -1,6 +1,5 @@
 package net.sickmc.sickbot
 
-import com.mongodb.client.model.Filters
 import dev.kord.common.entity.PresenceStatus
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
@@ -8,45 +7,49 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.on
 import dev.kord.core.supplier.EntitySupplyStrategy
+import dev.kord.gateway.Intent
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
+import net.sickmc.sickbot.modules.Lobby
+import net.sickmc.sickbot.modules.Log
 import net.sickmc.sickbot.modules.ModuleHandler
 import net.sickmc.sickbot.utils.RoleIDs
 import net.sickmc.sickbot.utils.config
-import net.sickmc.sickbot.utils.rankGroupColl
-import net.sickmc.sickbot.utils.ranksColl
 
 lateinit var kord: Kord
 lateinit var mainGuild: Guild
 lateinit var secondGuild: Guild
+val kordScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 class SickBot {
 
     companion object{
         lateinit var instance: SickBot
     }
 
-    private val moduleHandler: ModuleHandler = ModuleHandler()
-
     init {
         instance = this
     }
 
-    @OptIn(PrivilegedIntent::class)
+
     suspend fun setupBot(){
-        moduleHandler.register()
         kord.on<ReadyEvent> {
-            println("Bot is ready")
+            println("Bot has started")
             kord.editPresence {
                 status = PresenceStatus.Online
                 playing("on play.sickmc.net")
             }
             mainGuild = getMainGuild()
             secondGuild = getSecondGuild()
-            handleConsole()
             RoleIDs
+            ModuleHandler.register()
         }
 
+        @OptIn(PrivilegedIntent::class)
         kord.login {
             intents = Intents.all
         }
@@ -58,12 +61,6 @@ class SickBot {
                 status = PresenceStatus.Offline
             }
             kord.logout()
-        }
-    }
-
-    private fun handleConsole(){
-        while (true){
-            if (readln() == "stop")stopBot()
         }
     }
 

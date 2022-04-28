@@ -9,19 +9,16 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.embed
 import kotlinx.datetime.Clock
-import net.sickmc.sickbot.SickBot
 import net.sickmc.sickbot.kord
 import net.sickmc.sickbot.mainGuild
 import net.sickmc.sickbot.utils.EmbedVariables
 import net.sickmc.sickbot.utils.config
 
-class Lobby {
-
-    init {
+object Lobby {
+    fun register() {
         handleMemberJoin()
         handleServerBoost()
     }
-
     private fun handleServerBoost(){
         val allowed = listOf(MessageType.UserPremiumGuildSubscription, MessageType.UserPremiumGuildSubscriptionTierOne, MessageType.UserPremiumGuildSubscriptionThree, MessageType.UserPremiumGuildSubscriptionTwo)
 
@@ -34,6 +31,7 @@ class Lobby {
                 MessageType.UserPremiumGuildSubscriptionTwo -> descriptionBuilder.append("The server is now tier two!")
                 MessageType.UserPremiumGuildSubscriptionThree -> descriptionBuilder.append("The server is now tier three!")
                 MessageType.UserPremiumGuildSubscriptionTierOne -> descriptionBuilder.append("The server is now tier one!")
+                else -> {}
             }
             descriptionBuilder.append(" <a:party:959481387092676618>")
             lobby.createMessage {

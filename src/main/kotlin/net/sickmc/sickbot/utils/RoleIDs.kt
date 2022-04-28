@@ -26,6 +26,7 @@ object RoleIDs {
                 ids[it.getString("rankgroup")] = Snowflake(it.getString("discordRoleID"))
             }
             ranksColl.find().toList().forEach {
+                if (it.getString("discordID") == "")return@forEach
                 privateIds[it.getString("rank")] = Snowflake(it.getString("discordID"))
             }
         }

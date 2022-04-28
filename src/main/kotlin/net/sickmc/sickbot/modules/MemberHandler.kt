@@ -10,12 +10,10 @@ import net.sickmc.sickbot.utils.SickMembers
 import net.sickmc.sickbot.utils.databaseScope
 
 object MemberHandler {
-
-    init {
+    fun register(){
         handleMembers()
     }
-
-    fun handleMembers(){
+    private fun handleMembers(){
         databaseScope.launch {
             val members = mainGuild.members.toList()
             members.forEach {
