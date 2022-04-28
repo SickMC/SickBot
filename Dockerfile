@@ -1,6 +1,6 @@
 ARG BUILD_DIR="/usr/src/SickBot/"
 
-FROM gradle:7.4.2 AS builder
+FROM gradle:7.4.2-jdk AS builder
 
 ARG BUILD_DIR
 
