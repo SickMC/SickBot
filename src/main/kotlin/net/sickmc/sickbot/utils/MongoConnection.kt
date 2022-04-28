@@ -14,11 +14,10 @@ import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
 
 val databaseScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-private val credentials = FileUtils.getFileAsDocument("mongo")
 val mongoClient = KMongo.createClient(MongoClientSettings.builder()
-    .applyConnectionString(ConnectionString("mongodb://${credentials.getString("username")}:${credentials.getString("password")}@${credentials.getString("address")}:${credentials.getInteger("port")}/?authSource=${credentials.getString("databaseName")}"))
+    .applyConnectionString(ConnectionString("mongodb://${System.getenv("MONGO_USERNAME")}:${System.getenv("MONGO_PASSWORD")}@${System.getenv("MONGO_ADDRESS")}:${System.getenv("MONGO_PORT")}/?authSource=${System.getenv("MONGO_DATABASE")}"))
     .build()).coroutine
-val db = mongoClient.getDatabase(credentials.getString("databaseName"))
+val db = mongoClient.getDatabase(System.getenv("MONGO_DATABASE"))
 
 val configColl: CoroutineCollection<Document> = db.getCollection("config")
 val playerColl = db.getCollection<Document>("sickPlayers")
