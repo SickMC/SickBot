@@ -4,20 +4,21 @@ import dev.kord.common.entity.AuditLogEvent
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.behavior.getAuditLogEntries
+import dev.kord.core.entity.AuditLogEntry
 import dev.kord.core.entity.User
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.guild.*
 import dev.kord.core.event.message.MessageDeleteEvent
 import dev.kord.core.event.message.MessageUpdateEvent
 import dev.kord.core.on
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import net.sickmc.sickbot.kord
-import net.sickmc.sickbot.kordScope
-import net.sickmc.sickbot.mainGuild
-import net.sickmc.sickbot.secondGuild
+import net.sickmc.sickbot.*
 import net.sickmc.sickbot.utils.EmbedVariables
 import net.sickmc.sickbot.utils.config
+import kotlin.time.Duration.Companion.seconds
 
 object Log {
 
@@ -28,7 +29,6 @@ object Log {
     suspend fun logEvents(){
         val logChannel = secondGuild.getChannel(Snowflake(config.getString("staff_logChannel"))).asChannel() as TextChannel
 
-        println("Bitetetetetetet")
         kord.on<BanAddEvent> {
             var banner: User? = null
             guild.getAuditLogEntries(builder = {
@@ -43,7 +43,7 @@ object Log {
                 color = EmbedVariables.color()
                 footer = EmbedVariables.userFooter(user)
                 timestamp = Clock.System.now()
-                description = "The member **${user.mention}** was banned by **${banner?.mention}**\nReason\n ```${getBan().reason}```"
+                description = "The member **${user.mention}** was banned by **${banner?.mention}**\n**Reason:**\n ```${getBan().reason}```"
             }
         }
         kord.on<BanRemoveEvent> {
@@ -65,7 +65,6 @@ object Log {
         }
 
         kord.on<InviteCreateEvent> {
-            print("send?")
             logChannel.createEmbed {
                 title = EmbedVariables.title("Invite Create")
                 color = EmbedVariables.color()
@@ -104,7 +103,7 @@ object Log {
                 title = EmbedVariables.title("Invite Delete")
                 color = EmbedVariables.color()
                 timestamp = Clock.System.now()
-                description = "The invite $code was deleted"
+                description = "The invite **$code** was deleted"
             }
         }
 
@@ -130,20 +129,15 @@ object Log {
         kord.on<MessageDeleteEvent> {
             if (guildId == null)return@on
             if (message?.author!!.isBot)return@on
-            var deleter: User? = null
-            guild?.asGuild()?.getAuditLogEntries(builder = {
-                action = AuditLogEvent.MessageDelete
-                limit = 1
-            })?.collect(){
-                deleter = mainGuild.getMember(it.userId).asUser()
-            }
+            delay(2.seconds)
 
             logChannel.createEmbed {
+                val deleter = mainGuild.getMember(checkAuditLog(AuditLogEvent.MessageDelete)[0].userId)
                 title = EmbedVariables.title("Message Delete")
                 color = EmbedVariables.color()
-                footer = EmbedVariables.userFooter(deleter!!)
+                footer = EmbedVariables.userFooter(deleter)
                 timestamp = Clock.System.now()
-                description = "A message of **${message?.author?.mention}** was deleted by **${deleter?.mention}**\nContent: ```${message?.content}```"
+                description = "A message of **${message?.author?.mention}** was deleted by **${deleter.mention}**\n**Content:** ```${message?.content}```"
             }
         }
         kord.on<MessageUpdateEvent> {
@@ -152,9 +146,20 @@ object Log {
                 color = EmbedVariables.color()
                 footer = EmbedVariables.userFooter(old?.author!!)
                 timestamp = Clock.System.now()
-                description = "The message of **${old?.author?.mention}** changed\nOld: ```${old?.content}```\n\nNew: \n```${new.content}```"
+                description = "The message of **${old?.author?.mention}** changed\n**Old:** ```${old?.content}```\n\n**New:** \n```${new.content.value}```"
             }
         }
+    }
+    private suspend fun checkAuditLog(logAction: AuditLogEvent): List<AuditLogEntry>{
+        val list = arrayListOf<AuditLogEntry>()
+        mainGuild.getAuditLogEntries(builder = {
+            action = logAction
+            limit = 1
+            before = Snowflake(5.seconds.inWholeMilliseconds)
+        }).collect(){
+            list.add(it)
+        }
+        return list
     }
 
 }
