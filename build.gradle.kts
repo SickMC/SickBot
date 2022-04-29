@@ -21,6 +21,14 @@ dependencies {
 
 tasks{
 
+    compileJava{
+        options.encoding = "UTF-8"
+        options.release.set(18)
+    }
+    compileKotlin{
+        kotlinOptions.jvmTarget = "18"
+    }
+
     val pushToServer by registering(Exec::class){
         dependsOn(installDist)
         group = "push"
