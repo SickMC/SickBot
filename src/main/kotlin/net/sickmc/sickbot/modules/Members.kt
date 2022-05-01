@@ -9,7 +9,7 @@ import net.sickmc.sickbot.mainGuild
 import net.sickmc.sickbot.utils.SickMembers
 import net.sickmc.sickbot.utils.databaseScope
 
-object MemberHandler {
+object Members {
     fun register(){
         handleMembers()
     }

@@ -128,6 +128,7 @@ object Log {
 
         kord.on<MessageDeleteEvent> {
             if (guildId == null)return@on
+            if (message == null)return@on
             if (message?.author!!.isBot)return@on
             delay(2.seconds)
 
@@ -144,7 +145,7 @@ object Log {
             logChannel.createEmbed {
                 title = EmbedVariables.title("Message Update")
                 color = EmbedVariables.color()
-                footer = EmbedVariables.userFooter(old?.author!!)
+                if (old?.author != null) footer = EmbedVariables.userFooter(old?.author!!) else EmbedVariables.selfFooter()
                 timestamp = Clock.System.now()
                 description = "The message of **${old?.author?.mention}** changed\n**Old:** ```${old?.content}```\n\n**New:** \n```${new.content.value}```"
             }

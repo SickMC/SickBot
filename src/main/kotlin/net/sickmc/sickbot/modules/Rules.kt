@@ -68,8 +68,8 @@ object Rules {
 
     private fun handleInteraction() {
         kord.on<ButtonInteractionCreateEvent> {
-            val response = interaction.deferEphemeralResponse()
             if (interaction.componentId != "rule_accept") return@on
+            val response = interaction.deferEphemeralResponse()
             if (mainGuild.getMember(interaction.user.id).roleIds.contains(RoleIDs.getId("Player"))) {
                 response.respond {
                     content = "**Already accepted the rules!**\nCannot accept the rules twice!"
@@ -79,13 +79,12 @@ object Rules {
             mainGuild.getMember(interaction.user.id)
                 .addRole(RoleIDs.getId("Player")?: error("Player role not found"), "Accepted the rules!")
             response.respond { content = "**Accepted the rules!**\nHave fun!" }
-
         }
     }
     private fun handleRuleCreate() {
         kord.on<MessageCreateEvent> {
             if (message.content != "!rules") return@on
-            if (message.author!!.isBot) return@on
+            if (message.author?.isBot == true) return@on
             if (!message.author?.asMember(mainGuild.id)?.roleIds?.contains(RoleIDs.getId("Administration"))!!) return@on
             sendRuleMessage(message.channel.fetchChannel())
             message.delete("Rule message was send")

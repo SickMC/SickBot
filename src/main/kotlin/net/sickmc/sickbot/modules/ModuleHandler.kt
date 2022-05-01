@@ -5,7 +5,8 @@ object ModuleHandler {
         Log.register()
         Rules.register()
         Lobby.register()
-        MemberHandler.register()
+        Members.register()
+        Tickets.register()
     }
 
 }
