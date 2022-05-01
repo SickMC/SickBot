@@ -26,10 +26,10 @@ tasks{
 
     compileJava{
         options.encoding = "UTF-8"
-        options.release.set(18)
+        options.release.set(17)
     }
     compileKotlin{
-        kotlinOptions.jvmTarget = "18"
+        kotlinOptions.jvmTarget = "17"
     }
 
     val pushToServer by registering(Exec::class){
