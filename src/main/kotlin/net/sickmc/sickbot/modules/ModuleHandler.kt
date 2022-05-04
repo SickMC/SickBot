@@ -7,6 +7,7 @@ object ModuleHandler {
         Lobby.register()
         Members.register()
         Tickets.register()
+        Moderation.register()
     }
 
 }
