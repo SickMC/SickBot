@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import net.sickmc.sickbot.modules.Lobby
 import net.sickmc.sickbot.modules.Log
@@ -24,7 +25,6 @@ import net.sickmc.sickbot.utils.config
 lateinit var kord: Kord
 lateinit var mainGuild: Guild
 lateinit var secondGuild: Guild
-val kordScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 class SickBot {
 
     companion object{
@@ -45,6 +45,9 @@ class SickBot {
             }
             mainGuild = getMainGuild()
             secondGuild = getSecondGuild()
+            mainGuild.getApplicationCommands().toList().forEach {
+                it.delete()
+            }
             RoleIDs
             ModuleHandler.register()
         }
@@ -52,15 +55,6 @@ class SickBot {
         @OptIn(PrivilegedIntent::class)
         kord.login {
             intents = Intents.all
-        }
-    }
-
-    private fun stopBot(){
-        runBlocking {
-            kord.editPresence {
-                status = PresenceStatus.Offline
-            }
-            kord.logout()
         }
     }
 
