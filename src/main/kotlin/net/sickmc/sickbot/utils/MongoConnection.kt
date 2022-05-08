@@ -2,13 +2,10 @@ package net.sickmc.sickbot.utils
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
-import com.mongodb.client.model.Filters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import net.sickmc.sickbot.utils.FileUtils
 import org.bson.Document
-import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
@@ -21,7 +18,7 @@ val db = mongoClient.getDatabase(System.getenv("MONGO_DATABASE"))
 
 val configColl: CoroutineCollection<Document> = db.getCollection("config")
 val playerColl = db.getCollection<Document>("sickPlayers")
-val discordPlayerColl: CoroutineCollection<Document> = db.getCollection("discordPlayer")
+val levelingColl: CoroutineCollection<Document> = db.getCollection("leveling")
 val ticketColl: CoroutineCollection<Document> = db.getCollection("ticket")
 val rankGroupColl = db.getCollection<Document>("rankGroups")
 val ranksColl = db.getCollection<Document>("ranks")

@@ -35,7 +35,6 @@ class SickBot {
         instance = this
     }
 
-
     suspend fun setupBot(){
         kord.on<ReadyEvent> {
             println("Bot has started")

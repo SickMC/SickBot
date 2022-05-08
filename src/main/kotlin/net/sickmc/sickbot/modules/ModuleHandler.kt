@@ -8,6 +8,7 @@ object ModuleHandler {
         Members.register()
         Tickets.register()
         Moderation.register()
+        Leveling.register()
     }
 
 }
