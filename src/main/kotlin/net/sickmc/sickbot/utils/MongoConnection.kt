@@ -18,8 +18,8 @@ val db = mongoClient.getDatabase(System.getenv("MONGO_DATABASE"))
 
 val configColl: CoroutineCollection<Document> = db.getCollection("config")
 val playerColl = db.getCollection<Document>("sickPlayers")
-val levelingColl: CoroutineCollection<Document> = db.getCollection("leveling")
 val ticketColl: CoroutineCollection<Document> = db.getCollection("ticket")
 val rankGroupColl = db.getCollection<Document>("rankGroups")
 val ranksColl = db.getCollection<Document>("ranks")
+val levelingColl = db.getCollection<Document>("leveling")
 lateinit var config: Document
