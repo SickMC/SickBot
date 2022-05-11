@@ -84,9 +84,10 @@ object Rules {
     private fun handleRuleCreate() {
         kord.on<MessageCreateEvent> {
             if (message.content != "!rules") return@on
+            if (message.getGuildOrNull() == null)return@on
             if (message.author?.isBot == true) return@on
             if (!message.author?.asMember(mainGuild.id)?.roleIds?.contains(RoleIDs.getId("Administration"))!!) return@on
-            sendRuleMessage(message.channel.fetchChannel())
+            sendRuleMessage(message.channel.asChannel())
             message.delete("Rule message was send")
         }
     }
