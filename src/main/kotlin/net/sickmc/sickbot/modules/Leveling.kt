@@ -98,7 +98,7 @@ object Leveling {
                     val member = it.getMember()
                     if (!voiceCooldowns.containsKey(member)) voiceCooldowns[member] =
                         Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
-                    if (voiceCooldowns[member]!! < Clock.System.now().toEpochMilliseconds()) return@forEach
+                    if (voiceCooldowns[member]!! > Clock.System.now().toEpochMilliseconds()) return@forEach
                     check(member, increment = 2)
                 }
             }
