@@ -66,7 +66,7 @@ object Leveling {
             val member = message.getAuthorAsMember()!!
             if (!messageCooldowns.containsKey(member)) messageCooldowns[member] =
                 Clock.System.now().toEpochMilliseconds() + 1.minutes.inWholeMilliseconds
-            if (messageCooldowns[member]!! < Clock.System.now().toEpochMilliseconds()) return@on
+            if (messageCooldowns[member]!! > Clock.System.now().toEpochMilliseconds()) return@on
             check(member)
         }
     }
@@ -79,7 +79,7 @@ object Leveling {
             val member = state.getMember()
             if (!voiceCooldowns.containsKey(state.getMember())) voiceCooldowns[member] =
                 Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
-            if (voiceCooldowns[member]!! < Clock.System.now().toEpochMilliseconds()) return@on
+            if (voiceCooldowns[member]!! > Clock.System.now().toEpochMilliseconds()) return@on
             check(member)
         }
     }
