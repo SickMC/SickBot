@@ -25,10 +25,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import net.sickmc.sickbot.kord
 import net.sickmc.sickbot.mainGuild
-import net.sickmc.sickbot.utils.EmbedVariables
-import net.sickmc.sickbot.utils.RoleIDs
-import net.sickmc.sickbot.utils.config
-import net.sickmc.sickbot.utils.ticketColl
+import net.sickmc.sickbot.utils.*
 import org.bson.Document
 
 object Tickets {
@@ -204,7 +201,7 @@ object Tickets {
             embed {
                 title = EmbedVariables.title("Ticket")
                 footer = EmbedVariables.selfFooter()
-                color = EmbedVariables.color()
+                color = ticketColor
                 description = "When you need help click on the :envelope_with_arrow: button below this message!"
             }
             actionRow {
@@ -287,7 +284,7 @@ class Ticket(val owner: Member) {
                 title = EmbedVariables.title("Ticket")
                 footer = EmbedVariables.userFooter(owner)
                 timestamp = Clock.System.now()
-                color = EmbedVariables.color()
+                color = ticketColor
                 description = "${owner.mention}\n" +
                         "Welcome to the support!\n" +
                         "A ${mainGuild.getRole(RoleIDs.getId("Moderation") ?: error("Role ID of Moderator cannot be found")).mention} will support you soon!\n" +
@@ -327,7 +324,7 @@ class Ticket(val owner: Member) {
             title = EmbedVariables.title("Ticket")
             footer = EmbedVariables.userFooter(member)
             timestamp = Clock.System.now()
-            color = EmbedVariables.color()
+            color = ticketColor
             description = "${member.mention} took over this ticket!"
         }
     }
@@ -348,7 +345,7 @@ class Ticket(val owner: Member) {
             title = EmbedVariables.title("User Added")
             footer = EmbedVariables.userFooter(member)
             timestamp = Clock.System.now()
-            color = EmbedVariables.color()
+            color = ticketColor
             description = "The user ${member.mention} was added to this ticket!"
         }
     }
@@ -378,7 +375,7 @@ class Ticket(val owner: Member) {
                 title = EmbedVariables.title("Ticket Closed")
                 footer = EmbedVariables.userFooter(closer)
                 timestamp = Clock.System.now()
-                color = EmbedVariables.color()
+                color = ticketColor
                 description = "The user ${closer.mention} closed this ticket!"
             }
             actionRow {

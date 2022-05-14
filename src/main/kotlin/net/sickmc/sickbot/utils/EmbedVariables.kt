@@ -7,6 +7,12 @@ import dev.kord.core.supplier.EntitySupplyStrategy
 import dev.kord.rest.builder.message.EmbedBuilder
 import net.sickmc.sickbot.kord
 
+val levelColor = Color(47, 131, 11)
+val ticketColor = Color(57, 167,227)
+val ruleColor = Color(227,57,57)
+val lobbyColor = Color(165,227,57)
+val verifyColor = Color(58,161,32)
+val logColor = Color(181,181,181)
 object EmbedVariables {
 
     fun title(title: String): String{

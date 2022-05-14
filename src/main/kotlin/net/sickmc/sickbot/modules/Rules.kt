@@ -13,6 +13,7 @@ import net.sickmc.sickbot.kord
 import net.sickmc.sickbot.mainGuild
 import net.sickmc.sickbot.utils.EmbedVariables
 import net.sickmc.sickbot.utils.RoleIDs
+import net.sickmc.sickbot.utils.ruleColor
 
 object Rules {
 
@@ -22,7 +23,7 @@ object Rules {
     }
     private suspend fun sendRuleMessage(channel: MessageChannel) {
         channel.createEmbed {
-            color = EmbedVariables.color()
+            color = ruleColor
             title = EmbedVariables.title("Discord Rules")
             description = """
                 **Verhalten**
