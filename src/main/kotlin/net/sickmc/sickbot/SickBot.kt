@@ -7,24 +7,16 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.on
 import dev.kord.core.supplier.EntitySupplyStrategy
-import dev.kord.gateway.Intent
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
-import net.sickmc.sickbot.modules.Lobby
-import net.sickmc.sickbot.modules.Log
 import net.sickmc.sickbot.modules.ModuleHandler
 import net.sickmc.sickbot.utils.RoleIDs
 import net.sickmc.sickbot.utils.config
 
 lateinit var kord: Kord
 lateinit var mainGuild: Guild
-lateinit var secondGuild: Guild
+lateinit var staffGuild: Guild
 class SickBot {
 
     companion object{
@@ -43,7 +35,7 @@ class SickBot {
                 playing("on play.sickmc.net")
             }
             mainGuild = getMainGuild()
-            secondGuild = getSecondGuild()
+            staffGuild = getSecondGuild()
             mainGuild.getApplicationCommands().toList().forEach {
                 it.delete()
             }
