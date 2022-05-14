@@ -35,6 +35,18 @@ class Startup {
                 guilds { cache, description ->
                     MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
                 }
+                roles{cache, description ->
+                    MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
+                }
+                channels { cache, description ->
+                    MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
+                }
+                voiceState { cache, description ->
+                    MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
+                }
+                emojis { cache, description ->
+                    MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
+                }
             }
         }
         SickBot().setupBot()
