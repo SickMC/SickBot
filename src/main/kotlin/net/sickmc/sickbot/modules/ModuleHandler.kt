@@ -5,10 +5,10 @@ object ModuleHandler {
         Log.register()
         Rules.register()
         Lobby.register()
-        Members.register()
         Tickets.register()
         Moderation.register()
         Leveling.register()
+        Staff.register()
     }
 
 }
