@@ -12,12 +12,11 @@ import dev.kord.core.event.message.MessageDeleteEvent
 import dev.kord.core.event.message.MessageUpdateEvent
 import dev.kord.core.on
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import net.sickmc.sickbot.*
 import net.sickmc.sickbot.utils.EmbedVariables
 import net.sickmc.sickbot.utils.config
+import net.sickmc.sickbot.utils.logColor
 import kotlin.time.Duration.Companion.seconds
 
 object Log {
@@ -27,7 +26,7 @@ object Log {
     }
 
     suspend fun logEvents(){
-        val logChannel = secondGuild.getChannel(Snowflake(config.getString("staff_logChannel"))).asChannel() as TextChannel
+        val logChannel = staffGuild.getChannel(Snowflake(config.getString("staff_logChannel"))).asChannel() as TextChannel
 
         kord.on<BanAddEvent> {
             var banner: User? = null
@@ -40,7 +39,7 @@ object Log {
 
             logChannel.createEmbed {
                 title = EmbedVariables.title("Ban Add")
-                color = EmbedVariables.color()
+                color = logColor
                 footer = EmbedVariables.userFooter(user)
                 timestamp = Clock.System.now()
                 description = "The member **${user.mention}** was banned by **${banner?.mention}**\n**Reason:**\n ```${getBan().reason}```"
@@ -57,7 +56,7 @@ object Log {
 
             logChannel.createEmbed {
                 title = EmbedVariables.title("Ban Remove")
-                color = EmbedVariables.color()
+                color = logColor
                 footer = EmbedVariables.userFooter(user)
                 timestamp = Clock.System.now()
                 description = "The member **${user.mention}** was unbanned by **${unbanner?.mention}**"
@@ -67,7 +66,7 @@ object Log {
         kord.on<InviteCreateEvent> {
             logChannel.createEmbed {
                 title = EmbedVariables.title("Invite Create")
-                color = EmbedVariables.color()
+                color = logColor
                 footer = EmbedVariables.userFooter(inviter?.asUser() ?: return@on)
                 timestamp = Clock.System.now()
                 description = "The user **${inviter?.mention}** created a invite"
@@ -101,7 +100,7 @@ object Log {
         kord.on<InviteDeleteEvent> {
             logChannel.createEmbed {
                 title = EmbedVariables.title("Invite Delete")
-                color = EmbedVariables.color()
+                color = logColor
                 timestamp = Clock.System.now()
                 description = "The invite **$code** was deleted"
             }
@@ -110,7 +109,7 @@ object Log {
         kord.on<MemberJoinEvent> {
             logChannel.createEmbed {
                 title = EmbedVariables.title("Member Join")
-                color = EmbedVariables.color()
+                color = logColor
                 footer = EmbedVariables.userFooter(member)
                 timestamp = Clock.System.now()
                 description = "The user **${member.mention}** joined the server"
@@ -119,7 +118,7 @@ object Log {
         kord.on<MemberLeaveEvent> {
             logChannel.createEmbed {
                 title = EmbedVariables.title("Member Leave")
-                color = EmbedVariables.color()
+                color = logColor
                 footer = EmbedVariables.userFooter(user)
                 timestamp = Clock.System.now()
                 description = "The user **${user.mention}** left the server"
@@ -135,7 +134,7 @@ object Log {
             logChannel.createEmbed {
                 val deleter = mainGuild.getMember(checkAuditLog(AuditLogEvent.MessageDelete)[0].userId)
                 title = EmbedVariables.title("Message Delete")
-                color = EmbedVariables.color()
+                color = logColor
                 footer = EmbedVariables.userFooter(deleter)
                 timestamp = Clock.System.now()
                 description = "A message of **${message?.author?.mention}** was deleted by **${deleter.mention}**\n**Content:** ```${message?.content}```"
@@ -144,7 +143,7 @@ object Log {
         kord.on<MessageUpdateEvent> {
             logChannel.createEmbed {
                 title = EmbedVariables.title("Message Update")
-                color = EmbedVariables.color()
+                color = logColor
                 if (old?.author != null) footer = EmbedVariables.userFooter(old?.author!!) else EmbedVariables.selfFooter()
                 timestamp = Clock.System.now()
                 description = "The message of **${old?.author?.mention}** changed\n**Old:** ```${old?.content}```\n\n**New:** \n```${new.content.value}```"
