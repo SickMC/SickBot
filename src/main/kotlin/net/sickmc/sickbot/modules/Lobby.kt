@@ -13,6 +13,7 @@ import net.sickmc.sickbot.kord
 import net.sickmc.sickbot.mainGuild
 import net.sickmc.sickbot.utils.EmbedVariables
 import net.sickmc.sickbot.utils.config
+import net.sickmc.sickbot.utils.lobbyColor
 
 object Lobby {
     fun register() {
@@ -40,7 +41,7 @@ object Lobby {
                     description = descriptionBuilder.toString()
                     footer = EmbedVariables.selfFooter()
                     timestamp = Clock.System.now()
-                    color = EmbedVariables.color()
+                    color = lobbyColor
                 }
             }
         }
@@ -56,7 +57,7 @@ object Lobby {
                         "<a:party:959481387092676618> ${member.mention} joined the server <a:party:959481387092676618>!"
                     footer = EmbedVariables.userFooter(member)
                     timestamp = Clock.System.now()
-                    color = EmbedVariables.color()
+                    color = lobbyColor
                 }
             }
         }
