@@ -174,7 +174,7 @@ object Leveling {
                         }
                         interactionButton(ButtonStyle.Primary, "level_info"){
                             label = "Levels"
-                            emoji = DiscordPartialEmoji(name = "\uD83D\uDD39")
+                            emoji = DiscordPartialEmoji(id = Snowflake("975024822520283156"))
                         }
                     }
                 }
