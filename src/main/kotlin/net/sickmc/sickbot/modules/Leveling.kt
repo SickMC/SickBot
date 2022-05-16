@@ -11,6 +11,7 @@ import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Member
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.MessageChannel
+import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.user.VoiceStateUpdateEvent
@@ -51,7 +52,7 @@ object Leveling {
     suspend fun register() {
         handleMessages()
         handleVoiceJoin()
-        handleActiveVoice()
+        //handleActiveVoice()
         handleRanking()
         handleRankMessage()
         handleLevelInfo()
@@ -113,9 +114,7 @@ object Leveling {
             while (true) {
                 delay(5.minutes)
                 val states = mainGuild.voiceStates.filter {
-                    !it.isDeafened && !it.isSelfDeafened && !it.isMuted && !it.isSelfMuted && !it.isSuppressed && !ignoredVoiceChannels.contains(
-                        it.channelId
-                    )
+                    !it.isDeafened && !it.isSelfDeafened && !it.isMuted && !it.isSelfMuted && !it.isSuppressed && !ignoredVoiceChannels.contains(it.channelId)
                 }.toList()
                 states.forEach {
                     val member = it.getMember()
