@@ -313,7 +313,7 @@ object Leveling {
         if (players[member] == null)return null
         val to = Level.getLevel(players[member]!!.getInteger("points"))
         if (Level.getLevel(players[member]!!.getInteger("points")) == Level.getLevel(players[member]!!.getInteger("points").minus(increment)))return null
-        players[member]?.replace("unclaimedRewards", players[member]?.getList("unclaimedRewards", String::class.java)?.add(to.name))
+        players[member]?.replace("unclaimedRewards", (players[member]?.getList("unclaimedRewards", String::class.java) as ArrayList<String>).add(to.name))
         return LevelChange(Level.getLevel(players[member]!!.getInteger("points").minus(increment)), to)
     }
 
