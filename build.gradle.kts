@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.kord:kord-core:0.8.0-M13")
+    implementation("dev.kord:kord-core:0.8.0-M14")
     implementation("dev.kord.x:emoji:0.5.0")
 
     implementation("org.litote.kmongo:kmongo-coroutine:4.5.1")
