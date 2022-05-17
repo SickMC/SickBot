@@ -8,6 +8,7 @@ import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.behavior.reply
+import dev.kord.core.behavior.requestMembers
 import dev.kord.core.entity.Member
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.MessageChannel
@@ -17,6 +18,7 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.exception.EntityNotFoundException
 import dev.kord.core.on
+import dev.kord.gateway.PrivilegedIntent
 import dev.kord.rest.builder.message.create.actionRow
 import dev.kord.rest.builder.message.modify.embed
 import dev.kord.rest.builder.message.create.embed
@@ -52,7 +54,7 @@ object Leveling {
     suspend fun register() {
         handleMessages()
         handleVoiceJoin()
-        //handleActiveVoice()
+        handleActiveVoice()
         handleRanking()
         handleRankMessage()
         handleLevelInfo()
@@ -109,13 +111,18 @@ object Leveling {
         }
     }
 
+    @OptIn(PrivilegedIntent::class)
     private suspend fun handleActiveVoice() {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                val states = mainGuild.voiceStates.filter {
-                    !it.isDeafened && !it.isSelfDeafened && !it.isMuted && !it.isSelfMuted && !it.isSuppressed && !ignoredVoiceChannels.contains(it.channelId)
-                }.toList()
+                val states = mainGuild.requestMembers().toList()[0].members.filter { member -> member.getVoiceStateOrNull() != null &&
+                        !member.getVoiceState().isSelfDeafened &&
+                        !member.getVoiceState().isDeafened &&
+                        !member.getVoiceState().isMuted &&
+                        !member.getVoiceState().isSelfMuted &&
+                        !member.getVoiceState().isSuppressed
+                }.map { it.getVoiceState() }
                 states.forEach {
                     val member = it.getMember()
                     if (!voiceCooldowns.containsKey(member)){
