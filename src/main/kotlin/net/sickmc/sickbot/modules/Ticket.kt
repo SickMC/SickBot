@@ -75,7 +75,8 @@ object Tickets {
                         }
                         return@on
                     }
-                    val ticket = Ticket(interaction.user.asMember(mainGuild.id))
+                    val document = ticketColl.findOne(Filters.eq("channelID", interaction.channelId.toString()))
+                    val ticket = Ticket(mainGuild.getMember(Snowflake(document!!.getString("memberID"))))
                     ticket.load()
                     if (ticket.state != Ticket.TicketState.OPENED && ticket.state != Ticket.TicketState.ASSIGNED) {
                         response.respond {
@@ -114,7 +115,8 @@ object Tickets {
                         }
                         return@on
                     }
-                    val ticket = Ticket(interaction.user.asMember(mainGuild.id))
+                    val document = ticketColl.findOne(Filters.eq("channelID", interaction.channelId.toString()))
+                    val ticket = Ticket(mainGuild.getMember(Snowflake(document!!.getString("memberID"))))
                     ticket.load()
                     ticket.assign(interaction.user.asMember(mainGuild.id))
                     response.respond {
@@ -224,7 +226,7 @@ class Ticket(val owner: Member) {
     var userStrings = arrayListOf<String>()
 
     suspend fun load() {
-        document = ticketColl.findOne(Filters.eq("memberID", "${owner.id}"))
+        document = ticketColl.findOne(Filters.eq("memberID", owner.id.toString()))
         channel = if (document == null) null
         else mainGuild.getChannel(
             Snowflake(document?.getString("channelID") ?: error("ChannelID was null in Ticket"))
@@ -317,7 +319,7 @@ class Ticket(val owner: Member) {
         document?.set("state", TicketState.ASSIGNED.toString())
         ticketColl.replaceOne(
             Filters.eq("memberID", owner.id.toString()),
-            document ?: error("Document of Ticket ${member.username} was null")
+            document ?: error("Document of Ticket ${owner.username} was null")
         )
         state = TicketState.ASSIGNED
         channel?.createEmbed {
@@ -339,7 +341,7 @@ class Ticket(val owner: Member) {
         document?.set("extraUsers", userStrings)
         ticketColl.replaceOne(
             Filters.eq("memberID", owner.id.toString()),
-            document ?: error("Document of Ticket ${member.username} was null")
+            document ?: error("Document of Ticket ${owner.username} was null")
         )
         channel?.createEmbed {
             title = EmbedVariables.title("User Added")
