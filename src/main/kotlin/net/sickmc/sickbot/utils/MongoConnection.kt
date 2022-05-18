@@ -17,7 +17,6 @@ val mongoClient = KMongo.createClient(MongoClientSettings.builder()
 val db = mongoClient.getDatabase(System.getenv("MONGO_DATABASE"))
 
 val configColl: CoroutineCollection<Document> = db.getCollection("config")
-val playerColl = db.getCollection<Document>("sickPlayers")
 val ticketColl: CoroutineCollection<Document> = db.getCollection("ticket")
 val rankGroupColl = db.getCollection<Document>("rankGroups")
 val ranksColl = db.getCollection<Document>("ranks")
