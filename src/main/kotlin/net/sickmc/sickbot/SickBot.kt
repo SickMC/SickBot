@@ -3,6 +3,7 @@ package net.sickmc.sickbot
 import dev.kord.common.entity.PresenceStatus
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kord.core.behavior.requestMembers
 import dev.kord.core.entity.Guild
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.on
@@ -27,9 +28,9 @@ class SickBot {
         instance = this
     }
 
+    @OptIn(PrivilegedIntent::class)
     suspend fun setupBot(){
         kord.on<ReadyEvent> {
-            println("Bot has started")
             kord.editPresence {
                 status = PresenceStatus.Online
                 playing("on play.sickmc.net")
@@ -39,8 +40,10 @@ class SickBot {
             mainGuild.getApplicationCommands().toList().forEach {
                 it.delete()
             }
+            mainGuild.requestMembers {  }
             RoleIDs
             ModuleHandler.register()
+            println("Bot has started")
         }
 
         @OptIn(PrivilegedIntent::class)
