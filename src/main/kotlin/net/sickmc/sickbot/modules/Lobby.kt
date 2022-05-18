@@ -25,6 +25,7 @@ object Lobby {
 
         kord.on<MessageCreateEvent> {
             if (!allowed.contains(message.type))return@on
+            if (guildId == mainGuild.id)return@on
             val lobby = mainGuild.getChannel(Snowflake(config.getString("lobbyChannel"))) as? GuildMessageChannel ?: return@on
             val author = message.getAuthorAsMember()
             val descriptionBuilder: StringBuilder = StringBuilder("<a:party:959481387092676618> A very cool person just boosted the server!!!\nAnd his name is " + author!!.mention + "\n")
@@ -49,6 +50,7 @@ object Lobby {
 
     private fun handleMemberJoin(){
         kord.on<MemberJoinEvent> {
+            if (guild == mainGuild)return@on
             val lobby = mainGuild.getChannel(Snowflake(config.getString("lobbyChannel"))) as? GuildMessageChannel ?: return@on
             lobby.createMessage {
                 embed {

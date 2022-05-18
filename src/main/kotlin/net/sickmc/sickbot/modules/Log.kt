@@ -95,6 +95,11 @@ object Log {
                     value = if (targetUser == null) "Undefined" else "${targetUser?.mention}"
                     inline = true
                 }
+                field {
+                    name = "Guild"
+                    value = guild!!.asGuild().name
+                    inline = true
+                }
             }
         }
         kord.on<InviteDeleteEvent> {
@@ -102,7 +107,7 @@ object Log {
                 title = EmbedVariables.title("Invite Delete")
                 color = logColor
                 timestamp = Clock.System.now()
-                description = "The invite **$code** was deleted"
+                description = "The invite **$code** was deleted - ${guild?.asGuild()?.name}"
             }
         }
 
@@ -112,7 +117,7 @@ object Log {
                 color = logColor
                 footer = EmbedVariables.userFooter(member)
                 timestamp = Clock.System.now()
-                description = "The user **${member.mention}** joined the server"
+                description = "The user **${member.mention}** joined the server ${guild.asGuild().name}"
             }
         }
         kord.on<MemberLeaveEvent> {
@@ -121,7 +126,7 @@ object Log {
                 color = logColor
                 footer = EmbedVariables.userFooter(user)
                 timestamp = Clock.System.now()
-                description = "The user **${user.mention}** left the server"
+                description = "The user **${user.mention}** left the server ${guild.asGuild().name}"
             }
         }
 
