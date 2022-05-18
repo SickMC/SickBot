@@ -169,7 +169,7 @@ object Leveling {
                             > **3.** ${sorted[2].mention} - ${filteredPlayers[sorted[2]]?.getInteger("points")} <:sickball:975024822520283156>
                             > **4.** ${sorted[3].mention} - ${filteredPlayers[sorted[3]]?.getInteger("points")} <:sickball:975024822520283156>
                             > **5.** ${sorted[4].mention} - ${filteredPlayers[sorted[4]]?.getInteger("points")} <:sickball:975024822520283156>
-                            *updates every 5 minutes*
+                            *updates every minute*
                         """.trimIndent()
                     }
                     actionRow {
@@ -276,7 +276,7 @@ object Leveling {
                             > **3.** ${sorted[2].mention} - ${filteredPlayers[sorted[2]]?.getInteger("points")} <:sickball:975024822520283156>
                             > **4.** ${sorted[3].mention} - ${filteredPlayers[sorted[3]]?.getInteger("points")} <:sickball:975024822520283156>
                             > **5.** ${sorted[4].mention} - ${filteredPlayers[sorted[4]]?.getInteger("points")} <:sickball:975024822520283156>
-                            *updates every 5 minutes*
+                            *updates every minute*
                         """.trimIndent()
                 }
                 actionRow {
