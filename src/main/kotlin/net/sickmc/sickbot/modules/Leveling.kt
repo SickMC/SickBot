@@ -12,7 +12,6 @@ import dev.kord.core.behavior.requestMembers
 import dev.kord.core.entity.Member
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.MessageChannel
-import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.user.VoiceStateUpdateEvent
@@ -24,7 +23,6 @@ import dev.kord.rest.builder.message.modify.embed
 import dev.kord.rest.builder.message.create.embed
 import dev.kord.rest.builder.message.modify.actionRow
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import net.sickmc.sickbot.kord
@@ -116,7 +114,7 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                val states = mainGuild.requestMembers().toList()[0].members.filter { member -> member.getVoiceStateOrNull() != null &&
+                val states = mainGuild.requestMembers { requestAllMembers() }.toList()[0].members.filter { member -> member.getVoiceStateOrNull() != null &&
                         !member.getVoiceState().isSelfDeafened &&
                         !member.getVoiceState().isDeafened &&
                         !member.getVoiceState().isMuted &&
@@ -145,9 +143,8 @@ object Leveling {
         val message = channel.getMessage(Snowflake(config.getString("rankingMessage")))
         levelingScope.launch {
             while (true) {
-                delay(5.minutes)
+                delay(1.minutes)
                 val filteredPlayers = hashMapOf<Member, Document>()
-                rankingData = filteredPlayers
                 levelingColl.find().toList().forEach {
                     try {
                         val member = mainGuild.getMember(Snowflake(it.getString("id")))
@@ -156,6 +153,7 @@ object Leveling {
                         return@forEach
                     }
                 }
+                rankingData = filteredPlayers
                 val sorted = filteredPlayers.entries.sortedBy { it.value.getInteger("points") }
                     .map { it.key }.reversed()
                 ranking = sorted
@@ -254,7 +252,6 @@ object Leveling {
             if (message.author?.isBot == true) return@on
             if (!message.author?.asMember(mainGuild.id)?.roleIds?.contains(RoleIDs.getId("Administration"))!!) return@on
             val filteredPlayers = hashMapOf<Member, Document>()
-            rankingData = filteredPlayers
             levelingColl.find().toList().forEach {
                 try {
                     val member = mainGuild.getMember(Snowflake(it.getString("id")))
@@ -263,6 +260,7 @@ object Leveling {
                     return@forEach
                 }
             }
+            rankingData = filteredPlayers
             val sorted = filteredPlayers.entries.sortedBy { it.value.getInteger("points") }
                 .map { it.key }.reversed()
             ranking = sorted
