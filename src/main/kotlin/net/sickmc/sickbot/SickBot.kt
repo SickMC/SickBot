@@ -10,6 +10,8 @@ import dev.kord.core.on
 import dev.kord.core.supplier.EntitySupplyStrategy
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.toList
 import net.sickmc.sickbot.modules.ModuleHandler
 import net.sickmc.sickbot.utils.RoleIDs
@@ -37,9 +39,7 @@ class SickBot {
             }
             mainGuild = getMainGuild()
             staffGuild = getSecondGuild()
-            mainGuild.getApplicationCommands().toList().forEach {
-                it.delete()
-            }
+            mainGuild.getApplicationCommands().collect {app -> app.delete() }
             mainGuild.requestMembers {  }
             RoleIDs
             ModuleHandler.register()

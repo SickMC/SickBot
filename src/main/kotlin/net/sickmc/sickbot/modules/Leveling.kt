@@ -18,6 +18,7 @@ import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.exception.EntityNotFoundException
 import dev.kord.core.on
 import dev.kord.gateway.PrivilegedIntent
+import dev.kord.gateway.builder.RequestGuildMembersBuilder
 import dev.kord.rest.builder.message.create.actionRow
 import dev.kord.rest.builder.message.modify.embed
 import dev.kord.rest.builder.message.create.embed
@@ -114,25 +115,28 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                val states = mainGuild.requestMembers { requestAllMembers() }.toList()[0].members.filter { member -> member.getVoiceStateOrNull() != null &&
-                        !member.getVoiceState().isSelfDeafened &&
-                        !member.getVoiceState().isDeafened &&
-                        !member.getVoiceState().isMuted &&
-                        !member.getVoiceState().isSelfMuted &&
-                        !member.getVoiceState().isSuppressed
-                }.map { it.getVoiceState() }
-                states.forEach {
-                    val member = it.getMember()
-                    if (!voiceCooldowns.containsKey(member)){
+                val builder: RequestGuildMembersBuilder.() -> Unit = { requestAllMembers() }
+                mainGuild.requestMembers(builder).collect { event ->
+                    event.members.filter { member ->
+                        member.getVoiceStateOrNull() != null &&
+                                !member.getVoiceState().isSelfDeafened &&
+                                !member.getVoiceState().isDeafened &&
+                                !member.getVoiceState().isMuted &&
+                                !member.getVoiceState().isSelfMuted &&
+                                !member.getVoiceState().isSuppressed
+                    }.map { it.getVoiceState() }.forEach {
+                        val member = it.getMember()
+                        if (!voiceCooldowns.containsKey(member)){
+                            voiceCooldowns[member] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
+                            handlePoints(member, 2)
+                            checkLevelVoice(member, 2)
+                            return@forEach
+                        }
+                        if (voiceCooldowns[member]!! > Clock.System.now().toEpochMilliseconds()) return@forEach
                         voiceCooldowns[member] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
                         handlePoints(member, 2)
                         checkLevelVoice(member, 2)
-                        return@forEach
                     }
-                    if (voiceCooldowns[member]!! > Clock.System.now().toEpochMilliseconds()) return@forEach
-                    voiceCooldowns[member] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
-                    handlePoints(member, 2)
-                    checkLevelVoice(member, 2)
                 }
             }
         }
