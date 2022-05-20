@@ -10,6 +10,7 @@ import dev.kord.core.on
 import dev.kord.core.supplier.EntitySupplyStrategy
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
+import dev.kord.gateway.builder.RequestGuildMembersBuilder
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.toList
@@ -40,7 +41,8 @@ class SickBot {
             mainGuild = getMainGuild()
             staffGuild = getSecondGuild()
             mainGuild.getApplicationCommands().collect {app -> app.delete() }
-            mainGuild.requestMembers {  }
+            val builder: RequestGuildMembersBuilder.() -> Unit = { requestAllMembers() }
+            mainGuild.requestMembers(builder)
             RoleIDs
             ModuleHandler.register()
             println("Bot has started")
