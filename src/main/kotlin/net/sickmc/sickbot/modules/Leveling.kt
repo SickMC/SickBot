@@ -53,7 +53,7 @@ object Leveling {
     suspend fun register() {
         handleMessages()
         handleVoiceJoin()
-        //handleActiveVoice()
+        handleActiveVoice()
         handleRanking()
         handleRankMessage()
         handleLevelInfo()

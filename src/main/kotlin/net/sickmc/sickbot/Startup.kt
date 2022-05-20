@@ -22,6 +22,7 @@ class Startup {
         config = configColl.findOne(Filters.eq("type", "discordbot")) ?: error("config document is null")
 
         kord = Kord(config.getString("token")){
+            stackTraceRecovery = true
             cache {
                 users { cache, description ->
                     MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
