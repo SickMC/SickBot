@@ -151,7 +151,7 @@ object Leveling {
                 val filteredPlayers = hashMapOf<Member, Document>()
                 levelingColl.find().toList().forEach {
                     try {
-                        val member = mainGuild.getMember(Snowflake(it.getString("id")))
+                        val member = mainGuild.getMemberOrNull(Snowflake(it.getString("id"))) ?: return@forEach
                         filteredPlayers[member] = it
                     } catch (e: EntityNotFoundException) {
                         return@forEach
