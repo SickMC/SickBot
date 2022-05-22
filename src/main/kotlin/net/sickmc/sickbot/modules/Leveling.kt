@@ -17,6 +17,7 @@ import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.exception.EntityNotFoundException
+import dev.kord.core.live.live
 import dev.kord.core.on
 import dev.kord.gateway.PrivilegedIntent
 import dev.kord.gateway.builder.RequestGuildMembersBuilder
@@ -116,7 +117,7 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                val actives = liveMembers.filter { it.member.getVoiceStateOrNull() != null }.map { it.member }
+                val actives = liveMembers.filter { it.member.getVoiceStateOrNull() != null && it.member.getVoiceState().channelId != null }.map { it.member }
                 actives.forEach {
                     if (!voiceCooldowns.containsKey(it)){
                         voiceCooldowns[it] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
@@ -133,16 +134,18 @@ object Leveling {
         }
     }
 
+    @OptIn(KordPreview::class)
     private suspend fun handleRanking() {
         val channel = mainGuild.getChannel(Snowflake(config.getString("rankingChannel"))) as MessageChannel
-        val message = channel.getMessage(Snowflake(config.getString("rankingMessage")))
+        var message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
         levelingScope.launch {
             while (true) {
                 delay(1.minutes)
+                if (message == null)message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
                 val sorted = databaseMembers.entries.sortedBy { it.value.getInteger("points") }
                     .map { it.key }.reversed()
                 ranking = sorted
-                message.edit {
+                message!!.message.edit {
                     embed {
                         title = EmbedVariables.title("Ranking")
                         timestamp = Clock.System.now()
