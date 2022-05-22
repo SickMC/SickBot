@@ -1,6 +1,7 @@
 package net.sickmc.sickbot.modules
 
 import com.mongodb.client.model.Filters
+import dev.kord.common.annotation.KordPreview
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
@@ -26,7 +27,9 @@ import dev.kord.rest.builder.message.modify.actionRow
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
+import net.sickmc.sickbot.databaseMembers
 import net.sickmc.sickbot.kord
+import net.sickmc.sickbot.liveMembers
 import net.sickmc.sickbot.mainGuild
 import net.sickmc.sickbot.utils.EmbedVariables
 import net.sickmc.sickbot.utils.config
@@ -48,12 +51,11 @@ object Leveling {
     private val ignoredMessageChannels = arrayListOf<Snowflake>()
     private val levelingScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var ranking = listOf<Member>()
-    private var rankingData = hashMapOf<Member, Document>()
 
     suspend fun register() {
         handleMessages()
         handleVoiceJoin()
-        //handleActiveVoice()
+        handleActiveVoice()
         handleRanking()
         handleRankMessage()
         handleLevelInfo()
@@ -110,33 +112,23 @@ object Leveling {
         }
     }
 
-    @OptIn(PrivilegedIntent::class)
+    @OptIn(KordPreview::class)
     private suspend fun handleActiveVoice() {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                val builder: RequestGuildMembersBuilder.() -> Unit = { requestAllMembers() }
-                mainGuild.requestMembers(builder).collect { event ->
-                    event.members.filter { member ->
-                        member.getVoiceStateOrNull() != null &&
-                                !member.getVoiceState().isSelfDeafened &&
-                                !member.getVoiceState().isDeafened &&
-                                !member.getVoiceState().isMuted &&
-                                !member.getVoiceState().isSelfMuted &&
-                                !member.getVoiceState().isSuppressed
-                    }.map { it.getVoiceState() }.forEach {
-                        val member = it.getMember()
-                        if (!voiceCooldowns.containsKey(member)){
-                            voiceCooldowns[member] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
-                            handlePoints(member, 2)
-                            checkLevelVoice(member, 2)
-                            return@forEach
-                        }
-                        if (voiceCooldowns[member]!! > Clock.System.now().toEpochMilliseconds()) return@forEach
-                        voiceCooldowns[member] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
-                        handlePoints(member, 2)
-                        checkLevelVoice(member, 2)
+                val actives = liveMembers.filter { it.member.getVoiceStateOrNull() != null }.map { it.member }
+                actives.forEach {
+                    if (!voiceCooldowns.containsKey(it)){
+                        voiceCooldowns[it] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
+                        handlePoints(it, 2)
+                        checkLevelVoice(it, 2)
+                        return@forEach
                     }
+                    if (voiceCooldowns[it]!! > Clock.System.now().toEpochMilliseconds()) return@forEach
+                    voiceCooldowns[it] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
+                    handlePoints(it, 2)
+                    checkLevelVoice(it, 2)
                 }
             }
         }
@@ -148,17 +140,7 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(1.minutes)
-                val filteredPlayers = hashMapOf<Member, Document>()
-                levelingColl.find().toList().forEach {
-                    try {
-                        val member = mainGuild.getMemberOrNull(Snowflake(it.getString("id"))) ?: return@forEach
-                        filteredPlayers[member] = it
-                    } catch (e: EntityNotFoundException) {
-                        return@forEach
-                    }
-                }
-                rankingData = filteredPlayers
-                val sorted = filteredPlayers.entries.sortedBy { it.value.getInteger("points") }
+                val sorted = databaseMembers.entries.sortedBy { it.value.getInteger("points") }
                     .map { it.key }.reversed()
                 ranking = sorted
                 message.edit {
@@ -168,11 +150,11 @@ object Leveling {
                         footer = EmbedVariables.userFooter(sorted[0])
                         color = levelColor
                         description = """
-                            > **1.** ${sorted[0].mention} - ${filteredPlayers[sorted[0]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **2.** ${sorted[1].mention} - ${filteredPlayers[sorted[1]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **3.** ${sorted[2].mention} - ${filteredPlayers[sorted[2]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **4.** ${sorted[3].mention} - ${filteredPlayers[sorted[3]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **5.** ${sorted[4].mention} - ${filteredPlayers[sorted[4]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **1.** ${sorted[0].mention} - ${databaseMembers[sorted[0]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **2.** ${sorted[1].mention} - ${databaseMembers[sorted[1]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **3.** ${sorted[2].mention} - ${databaseMembers[sorted[2]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **4.** ${sorted[3].mention} - ${databaseMembers[sorted[3]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **5.** ${sorted[4].mention} - ${databaseMembers[sorted[4]]?.getInteger("points")} <:sickball:975024822520283156>
                             *updates every minute*
                         """.trimIndent()
                     }
@@ -199,7 +181,7 @@ object Leveling {
             }
             response.respond {
                 embed {
-                    val points = rankingData[member]?.getInteger("points")!!
+                    val points = databaseMembers[member]?.getInteger("points")!!
                     val percentToNext = ((points.toDouble() / Level.getLevel(points).getNext().from.toDouble()) * 100).toInt()
                     val progressBuilder = StringBuilder()
                     val progressOnBar = percentToNext / 5
@@ -255,17 +237,7 @@ object Leveling {
             if (message.getGuildOrNull() == null) return@on
             if (message.author?.isBot == true) return@on
             if (!message.author?.asMember(mainGuild.id)?.roleIds?.contains(RoleIDs.getId("Administration"))!!) return@on
-            val filteredPlayers = hashMapOf<Member, Document>()
-            levelingColl.find().toList().forEach {
-                try {
-                    val member = mainGuild.getMember(Snowflake(it.getString("id")))
-                    filteredPlayers[member] = it
-                } catch (e: EntityNotFoundException) {
-                    return@forEach
-                }
-            }
-            rankingData = filteredPlayers
-            val sorted = filteredPlayers.entries.sortedBy { it.value.getInteger("points") }
+            val sorted = databaseMembers.entries.sortedBy { it.value.getInteger("points") }
                 .map { it.key }.reversed()
             ranking = sorted
             config.replace("rankingMessage", message.getChannel().createMessage {
@@ -275,11 +247,11 @@ object Leveling {
                     footer = EmbedVariables.selfFooter()
                     color = levelColor
                     description = """
-                            > **1.** ${sorted[0].mention} - ${filteredPlayers[sorted[0]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **2.** ${sorted[1].mention} - ${filteredPlayers[sorted[1]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **3.** ${sorted[2].mention} - ${filteredPlayers[sorted[2]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **4.** ${sorted[3].mention} - ${filteredPlayers[sorted[3]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **5.** ${sorted[4].mention} - ${filteredPlayers[sorted[4]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **1.** ${sorted[0].mention} - ${databaseMembers[sorted[0]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **2.** ${sorted[1].mention} - ${databaseMembers[sorted[1]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **3.** ${sorted[2].mention} - ${databaseMembers[sorted[2]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **4.** ${sorted[3].mention} - ${databaseMembers[sorted[3]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **5.** ${sorted[4].mention} - ${databaseMembers[sorted[4]]?.getInteger("points")} <:sickball:975024822520283156>
                             *updates every minute*
                         """.trimIndent()
                 }
