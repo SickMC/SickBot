@@ -45,7 +45,6 @@ object Leveling {
 
     private val messageCooldowns = hashMapOf<Member, Long>()
     private val voiceCooldowns = hashMapOf<Member, Long>()
-    private val players = hashMapOf<Member, Document>()
     private var refreshCooldown = Clock.System.now().toEpochMilliseconds() + 30.seconds.inWholeMilliseconds
     private val ignoredVoiceChannels = arrayListOf<Snowflake>()
     private val ignoredMessageChannels = arrayListOf<Snowflake>()
@@ -66,7 +65,7 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                players.forEach {
+                databaseMembers.forEach {
                     levelingColl.replaceOne(Filters.eq("id", it.key.id.toString()), it.value)
                 }
             }
@@ -271,19 +270,22 @@ object Leveling {
     }
 
     private suspend fun handlePoints(member: Member, increment: Int = 1) {
-        if (!players.containsKey(member)) {
+        if (!databaseMembers.containsKey(member)) {
             var doc = levelingColl.findOne(Filters.eq("id", member.id.toString()))
             if (doc == null) {
                 doc = Document("id", member.id.toString()).append("points", increment).append("unclaimedRewards", arrayListOf<String>())
+                databaseMembers[member] = doc
                 levelingColl.insertOne(doc)
             }
-            players[member] = doc ?: error("document was null in Leveling Module - ${member.id}")
+            databaseMembers[member] = doc ?: error("document was null in Leveling Module - ${member.id}")
         } else {
-            players[member]?.replace("points", players[member]?.getInteger("points")?.plus(increment))
+            val doc = databaseMembers[member]!!
+            doc.replace("points", doc.getInteger("points").plus(increment))
+            databaseMembers[member] = doc
             if (refreshCooldown < Clock.System.now().toEpochMilliseconds()) {
                 levelingColl.replaceOne(
                     Filters.eq("id", member.id.toString()),
-                    players[member] ?: error("${member.id} was not in players")
+                    databaseMembers[member] ?: error("${member.id} was not in players")
                 )
                 refreshCooldown = Clock.System.now().toEpochMilliseconds() + 30.seconds.inWholeMilliseconds
             }
@@ -291,13 +293,13 @@ object Leveling {
     }
 
     private fun checkLevel(member: Member, increment: Int = 1): LevelChange?{
-        if (players[member] == null)return null
-        val to = Level.getLevel(players[member]!!.getInteger("points"))
-        if (Level.getLevel(players[member]!!.getInteger("points")) == Level.getLevel(players[member]!!.getInteger("points").minus(increment)))return null
-        val rewards = players[member]!!.getList("unclaimedRewards", String::class.java) as ArrayList<String>
+        if (databaseMembers[member] == null)return null
+        val to = Level.getLevel(databaseMembers[member]!!.getInteger("points"))
+        if (Level.getLevel(databaseMembers[member]!!.getInteger("points")) == Level.getLevel(databaseMembers[member]!!.getInteger("points").minus(increment)))return null
+        val rewards = databaseMembers[member]!!.getList("unclaimedRewards", String::class.java) as ArrayList<String>
         rewards.add(to.name)
-        players[member]?.replace("unclaimedRewards", rewards)
-        return LevelChange(Level.getLevel(players[member]!!.getInteger("points").minus(increment)), to)
+        databaseMembers[member]?.replace("unclaimedRewards", rewards)
+        return LevelChange(Level.getLevel(databaseMembers[member]!!.getInteger("points").minus(increment)), to)
     }
 
     private suspend fun checkLevelMessage(message: Message){
