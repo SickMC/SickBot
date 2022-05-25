@@ -19,7 +19,11 @@ dependencies {
     implementation("org.litote.kmongo:kmongo-coroutine:4.5.1")
     implementation("io.github.crackthecodeabhi:kreds:0.7")
 
-    implementation("org.slf4j:slf4j-simple:1.7.30")
+    implementation("org.slf4j:slf4j-simple:1.7.36")
+}
+
+kotlin.sourceSets.all {
+    languageSettings.optIn("kotlin.RequiresOptIn")
 }
 
 tasks{
@@ -30,12 +34,6 @@ tasks{
     }
     compileKotlin{
         kotlinOptions.jvmTarget = "17"
-    }
-
-    val pushToServer by registering(Exec::class){
-        dependsOn(installDist)
-        group = "push"
-        commandLine("wsl", "rsync", "-av", "/mnt/c/Users/anton/Desktop/Ordner/Development/SickNetwork/SickBot/build/install/SickBot/", "node1:/home/sickmc/network/bot")
     }
 
 }

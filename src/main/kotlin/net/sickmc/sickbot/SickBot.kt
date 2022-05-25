@@ -1,5 +1,6 @@
 package net.sickmc.sickbot
 
+import com.mongodb.client.model.Filters
 import dev.kord.common.annotation.KordPreview
 import dev.kord.common.entity.PresenceStatus
 import dev.kord.common.entity.Snowflake
@@ -29,8 +30,10 @@ lateinit var kord: Kord
 lateinit var mainGuild: Guild
 lateinit var staffGuild: Guild
 @OptIn(KordPreview::class)
-val liveMembers = arrayListOf<LiveMember>()
-val databaseMembers = hashMapOf<Member, Document>()
+val liveMembers = hashMapOf<LiveMember, Document>()
+
+
+@OptIn(KordPreview::class, PrivilegedIntent::class)
 class SickBot {
 
     companion object{
@@ -41,7 +44,6 @@ class SickBot {
         instance = this
     }
 
-    @OptIn(PrivilegedIntent::class, KordPreview::class)
     suspend fun setupBot(){
         kord.on<ReadyEvent> {
             kord.editPresence {
@@ -52,14 +54,19 @@ class SickBot {
             staffGuild = getSecondGuild()
             mainGuild.getApplicationCommands().collect {app -> app.delete() }
             val builder: RequestGuildMembersBuilder.() -> Unit = { requestAllMembers() }
-            mainGuild.requestMembers(builder).collect { event -> event.members.forEach { liveMembers.add(it.live()) } }
-            levelingColl.find().toFlow().collect { databaseMembers[mainGuild.getMember(it.getString("id").toSnowflake())] = it }
+            mainGuild.requestMembers(builder).collect { event -> event.members.forEach {
+                var doc = levelingColl.findOne(Filters.eq("id", it.id.toString()))
+                if (doc == null){
+                    doc = Document("id", it.id.toString()).append("points", 1).append("unclaimedRewards", arrayListOf<String>())
+                    levelingColl.insertOne(doc)
+                }
+                liveMembers[it.live()] = doc!!
+            } }
             RoleIDs
             ModuleHandler.register()
             println("Bot has started")
         }
 
-        @OptIn(PrivilegedIntent::class)
         kord.login {
             intents = Intents.all
         }
