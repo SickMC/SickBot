@@ -46,7 +46,7 @@ object Leveling {
     private val ignoredVoiceChannels = arrayListOf<Snowflake>()
     private val ignoredMessageChannels = arrayListOf<Snowflake>()
     private val levelingScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private var ranking = listOf<LiveMember>()
+    private var ranking = listOf<Member>()
 
     suspend fun register() {
         handleMessages()
@@ -137,19 +137,19 @@ object Leveling {
                 var message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
                 if (message == null)message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
                 ranking = liveMembers.filter { !it.key.member.isBot }.entries.sortedBy { it.value.getInteger("points") }
-                    .map { it.key }.reversed()
+                    .map { it.key.member }.reversed()
                 message!!.message.edit {
                     embed {
                         title = EmbedVariables.title("Ranking")
                         timestamp = Clock.System.now()
-                        footer = EmbedVariables.userFooter(ranking[0].member)
+                        footer = EmbedVariables.userFooter(ranking[0])
                         color = levelColor
                         description = """
-                            > **1.** ${ranking[0].member.mention} - ${liveMembers[ranking[0]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **2.** ${ranking[1].member.mention} - ${liveMembers[ranking[1]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **3.** ${ranking[2].member.mention} - ${liveMembers[ranking[2]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **4.** ${ranking[3].member.mention} - ${liveMembers[ranking[3]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **5.** ${ranking[4].member.mention} - ${liveMembers[ranking[4]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **1.** ${ranking[0].mention} - ${liveMembers[ranking[0].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **2.** ${ranking[1].mention} - ${liveMembers[ranking[1].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **3.** ${ranking[2].mention} - ${liveMembers[ranking[2].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **4.** ${ranking[3].mention} - ${liveMembers[ranking[3].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **5.** ${ranking[4].mention} - ${liveMembers[ranking[4].live()]?.getInteger("points")} <:sickball:975024822520283156>
                             *updates every minute*
                         """.trimIndent()
                     }
@@ -169,14 +169,14 @@ object Leveling {
             if(interaction.componentId != "leveling_rank")return@on
             if(interaction.user.isBot)return@on
             val response = interaction.deferEphemeralResponse()
-            val member = this.interaction.user.asMember().live()
+            val member = this.interaction.user.asMember()
             if(!ranking.contains(member)){
                 response.respond { content = "Your rank cannot be found!\nCheck if you interacted on this guild before (chatting/talking)\nIf you think this is an error please open a ticket." }
                 return@on
             }
             response.respond {
                 embed {
-                    val points = liveMembers[member]?.getInteger("points")!!
+                    val points = liveMembers[member.live()]?.getInteger("points")!!
                     val percentToNext = ((points.toDouble() / Level.getLevel(points).getNext().from.toDouble()) * 100).toInt()
                     val progressBuilder = StringBuilder()
                     val progressOnBar = percentToNext / 5
@@ -197,7 +197,7 @@ object Leveling {
                         > **Progress:** `$progressBuilder` $percentToNext%
                     """.trimIndent()
                     timestamp = Clock.System.now()
-                    footer = EmbedVariables.userFooter(member.member)
+                    footer = EmbedVariables.userFooter(member)
                     color = levelColor
                 }
             }
@@ -233,19 +233,19 @@ object Leveling {
             if (message.author?.isBot == true) return@on
             if (!message.author?.asMember(mainGuild.id)?.roleIds?.contains(RoleIDs.getId("Administration"))!!) return@on
             ranking = liveMembers.entries.sortedBy { it.value.getInteger("points") }
-                .map { it.key }.reversed()
+                .map { it.key.member }.reversed()
             config.replace("rankingMessage", message.getChannel().createMessage {
                 embed {
                     title = EmbedVariables.title("Ranking")
                     timestamp = Clock.System.now()
-                    footer = EmbedVariables.userFooter(ranking[0].member)
+                    footer = EmbedVariables.userFooter(ranking[0])
                     color = levelColor
                     description = """
-                            > **1.** ${ranking[0].member.mention} - ${liveMembers[ranking[0]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **2.** ${ranking[1].member.mention} - ${liveMembers[ranking[1]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **3.** ${ranking[2].member.mention} - ${liveMembers[ranking[2]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **4.** ${ranking[3].member.mention} - ${liveMembers[ranking[3]]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **5.** ${ranking[4].member.mention} - ${liveMembers[ranking[4]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **1.** ${ranking[0].mention} - ${liveMembers[ranking[0].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **2.** ${ranking[1].mention} - ${liveMembers[ranking[1].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **3.** ${ranking[2].mention} - ${liveMembers[ranking[2].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **4.** ${ranking[3].mention} - ${liveMembers[ranking[3].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **5.** ${ranking[4].mention} - ${liveMembers[ranking[4].live()]?.getInteger("points")} <:sickball:975024822520283156>
                             *updates every minute*
                         """.trimIndent()
                 }
