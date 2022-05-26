@@ -19,6 +19,7 @@ import dev.kord.gateway.builder.RequestGuildMembersBuilder
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.toList
+import net.sickmc.sickbot.modules.Leveling
 import net.sickmc.sickbot.modules.ModuleHandler
 import net.sickmc.sickbot.utils.RoleIDs
 import net.sickmc.sickbot.utils.config
@@ -61,6 +62,7 @@ class SickBot {
                     levelingColl.insertOne(doc)
                 }
                 liveMembers.add(it.live())
+                Leveling.levelingDocs[it] = doc!!
             } }
             RoleIDs
             ModuleHandler.register()

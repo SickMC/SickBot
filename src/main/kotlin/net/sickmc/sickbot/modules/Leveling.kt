@@ -47,7 +47,7 @@ object Leveling {
     private val ignoredMessageChannels = arrayListOf<Snowflake>()
     private val levelingScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var ranking = listOf<Member>()
-    private val levelingDocs = hashMapOf<Member, Document>()
+    val levelingDocs = hashMapOf<Member, Document>()
 
     suspend fun register() {
         handleMessages()
