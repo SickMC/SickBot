@@ -62,7 +62,7 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                liveMembers.forEach {
+                liveMembers.filter { !it.key.member.isBot }.forEach {
                     levelingColl.replaceOne(Filters.eq("id", it.key.id.toString()), it.value)
                 }
             }
@@ -112,7 +112,7 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                val actives = liveMembers.filter { it.key.member.getVoiceStateOrNull() != null && it.key.member.getVoiceState().channelId != null }.map { it.key }
+                val actives = liveMembers.filter { it.key.member.getVoiceStateOrNull() != null && it.key.member.getVoiceState().channelId != null && !it.key.member.isBot }.map { it.key }
                 actives.forEach {
                     if (!voiceCooldowns.containsKey(it.id)){
                         voiceCooldowns[it.id] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
@@ -136,7 +136,7 @@ object Leveling {
                 delay(1.minutes)
                 var message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
                 if (message == null)message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
-                ranking = liveMembers.entries.sortedBy { it.value.getInteger("points") }
+                ranking = liveMembers.filter { !it.key.member.isBot }.entries.sortedBy { it.value.getInteger("points") }
                     .map { it.key }.reversed()
                 message!!.message.edit {
                     embed {
@@ -265,6 +265,7 @@ object Leveling {
     }
 
     private suspend fun handlePoints(member: LiveMember, increment: Int = 1) {
+        if (member.member.isBot)return
         if (!liveMembers.containsKey(member)) {
             var doc = levelingColl.findOne(Filters.eq("id", member.id.toString()))
             if (doc == null) {
@@ -288,6 +289,7 @@ object Leveling {
     }
 
     private fun checkLevel(member: LiveMember, increment: Int = 1): LevelChange?{
+        if (member.member.isBot)return null
         if (liveMembers[member] == null)return null
         val to = Level.getLevel(liveMembers[member]!!.getInteger("points"))
         if (Level.getLevel(liveMembers[member]!!.getInteger("points")) == Level.getLevel(liveMembers[member]!!.getInteger("points").minus(increment)))return null
@@ -299,6 +301,7 @@ object Leveling {
 
     private suspend fun checkLevelMessage(message: Message){
         val member = message.getAuthorAsMember()!!.live()
+        if (member.member.isBot)return
         val levelChange = checkLevel(member) ?: return
         message.reply {
             embed {
@@ -323,6 +326,7 @@ object Leveling {
     }
 
     private suspend fun checkLevelVoice(member: LiveMember, increment: Int = 1){
+        if (member.member.isBot)return
         val levelChange = checkLevel(member, increment) ?: return
         val chat = mainGuild.getChannel(Snowflake(config.getString("generalChat"))) as MessageChannel
         chat.createMessage{
