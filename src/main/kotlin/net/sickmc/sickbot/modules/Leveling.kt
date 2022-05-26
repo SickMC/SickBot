@@ -47,6 +47,7 @@ object Leveling {
     private val ignoredMessageChannels = arrayListOf<Snowflake>()
     private val levelingScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var ranking = listOf<Member>()
+    private val levelingDocs = hashMapOf<Member, Document>()
 
     suspend fun register() {
         handleMessages()
@@ -62,7 +63,7 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                liveMembers.filter { !it.key.member.isBot }.forEach {
+                levelingDocs.filter { !it.key.isBot }.forEach {
                     levelingColl.replaceOne(Filters.eq("id", it.key.id.toString()), it.value)
                 }
             }
@@ -75,7 +76,7 @@ object Leveling {
             if (message.author == null) return@on
             if (message.author!!.isBot) return@on
             if (ignoredMessageChannels.contains(message.channel.id)) return@on
-            val member = message.getAuthorAsMember()!!.live()
+            val member = message.getAuthorAsMember()!!
             if (!messageCooldowns.containsKey(member.id)){
                 messageCooldowns[member.id] = Clock.System.now().toEpochMilliseconds() + 1.minutes.inWholeMilliseconds
                 handlePoints(member)
@@ -94,7 +95,7 @@ object Leveling {
             if (state.getMember().isBot) return@on
             if (state.getGuild() != mainGuild) return@on
             if (ignoredVoiceChannels.contains(state.channelId)) return@on
-            val member = state.getMember().live()
+            val member = state.getMember()
             if (!voiceCooldowns.containsKey(member.id)){
                 voiceCooldowns[member.id] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
                 handlePoints(member)
@@ -112,18 +113,18 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                val actives = liveMembers.filter { it.key.member.getVoiceStateOrNull() != null && it.key.member.getVoiceState().channelId != null && !it.key.member.isBot }.map { it.key }
+                val actives = liveMembers.filter { it.member.getVoiceStateOrNull() != null && it.member.getVoiceState().channelId != null && !it.member.isBot }
                 actives.forEach {
                     if (!voiceCooldowns.containsKey(it.id)){
                         voiceCooldowns[it.id] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
-                        handlePoints(it, 2)
-                        checkLevelVoice(it, 2)
+                        handlePoints(it.member, 2)
+                        checkLevelVoice(it.member, 2)
                         return@forEach
                     }
                     if (voiceCooldowns[it.id]!! > Clock.System.now().toEpochMilliseconds()) return@forEach
                     voiceCooldowns[it.id] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
-                    handlePoints(it, 2)
-                    checkLevelVoice(it, 2)
+                    handlePoints(it.member, 2)
+                    checkLevelVoice(it.member, 2)
                 }
             }
         }
@@ -136,8 +137,8 @@ object Leveling {
                 delay(1.minutes)
                 var message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
                 if (message == null)message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
-                ranking = liveMembers.filter { !it.key.member.isBot }.entries.sortedBy { it.value.getInteger("points") }
-                    .map { it.key.member }.reversed()
+                ranking = levelingDocs.filter { !it.key.isBot }.entries.sortedBy { it.value.getInteger("points") }
+                    .map { it.key }.reversed()
                 message!!.message.edit {
                     embed {
                         title = EmbedVariables.title("Ranking")
@@ -145,11 +146,11 @@ object Leveling {
                         footer = EmbedVariables.userFooter(ranking[0])
                         color = levelColor
                         description = """
-                            > **1.** ${ranking[0].mention} - ${liveMembers[ranking[0].live()]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **2.** ${ranking[1].mention} - ${liveMembers[ranking[1].live()]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **3.** ${ranking[2].mention} - ${liveMembers[ranking[2].live()]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **4.** ${ranking[3].mention} - ${liveMembers[ranking[3].live()]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **5.** ${ranking[4].mention} - ${liveMembers[ranking[4].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **1.** ${ranking[0].mention} - ${levelingDocs[ranking[0]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **2.** ${ranking[1].mention} - ${levelingDocs[ranking[1]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **3.** ${ranking[2].mention} - ${levelingDocs[ranking[2]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **4.** ${ranking[3].mention} - ${levelingDocs[ranking[3]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **5.** ${ranking[4].mention} - ${levelingDocs[ranking[4]]?.getInteger("points")} <:sickball:975024822520283156>
                             *updates every minute*
                         """.trimIndent()
                     }
@@ -176,7 +177,7 @@ object Leveling {
             }
             response.respond {
                 embed {
-                    val points = liveMembers[member.live()]?.getInteger("points")!!
+                    val points = levelingDocs[member]?.getInteger("points")!!
                     val percentToNext = ((points.toDouble() / Level.getLevel(points).getNext().from.toDouble()) * 100).toInt()
                     val progressBuilder = StringBuilder()
                     val progressOnBar = percentToNext / 5
@@ -232,8 +233,8 @@ object Leveling {
             if (message.getGuildOrNull() == null) return@on
             if (message.author?.isBot == true) return@on
             if (!message.author?.asMember(mainGuild.id)?.roleIds?.contains(RoleIDs.getId("Administration"))!!) return@on
-            ranking = liveMembers.entries.sortedBy { it.value.getInteger("points") }
-                .map { it.key.member }.reversed()
+            ranking = levelingDocs.entries.sortedBy { it.value.getInteger("points") }
+                .map { it.key }.reversed()
             config.replace("rankingMessage", message.getChannel().createMessage {
                 embed {
                     title = EmbedVariables.title("Ranking")
@@ -241,11 +242,11 @@ object Leveling {
                     footer = EmbedVariables.userFooter(ranking[0])
                     color = levelColor
                     description = """
-                            > **1.** ${ranking[0].mention} - ${liveMembers[ranking[0].live()]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **2.** ${ranking[1].mention} - ${liveMembers[ranking[1].live()]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **3.** ${ranking[2].mention} - ${liveMembers[ranking[2].live()]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **4.** ${ranking[3].mention} - ${liveMembers[ranking[3].live()]?.getInteger("points")} <:sickball:975024822520283156>
-                            > **5.** ${ranking[4].mention} - ${liveMembers[ranking[4].live()]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **1.** ${ranking[0].mention} - ${levelingDocs[ranking[0]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **2.** ${ranking[1].mention} - ${levelingDocs[ranking[1]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **3.** ${ranking[2].mention} - ${levelingDocs[ranking[2]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **4.** ${ranking[3].mention} - ${levelingDocs[ranking[3]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **5.** ${ranking[4].mention} - ${levelingDocs[ranking[4]]?.getInteger("points")} <:sickball:975024822520283156>
                             *updates every minute*
                         """.trimIndent()
                 }
@@ -264,53 +265,53 @@ object Leveling {
         }
     }
 
-    private suspend fun handlePoints(member: LiveMember, increment: Int = 1) {
-        if (member.member.isBot)return
-        if (!liveMembers.containsKey(member)) {
+    private suspend fun handlePoints(member: Member, increment: Int = 1) {
+        if (member.isBot)return
+        if (!levelingDocs.containsKey(member)) {
             var doc = levelingColl.findOne(Filters.eq("id", member.id.toString()))
             if (doc == null) {
                 doc = Document("id", member.id.toString()).append("points", increment).append("unclaimedRewards", arrayListOf<String>())
-                liveMembers[member] = doc
+                levelingDocs[member] = doc
                 levelingColl.insertOne(doc)
             }
-            liveMembers[member] = doc ?: error("document was null in Leveling Module - ${member.id}")
+            levelingDocs[member] = doc ?: error("document was null in Leveling Module - ${member.id}")
         } else {
-            val doc = liveMembers[member]!!
+            val doc = levelingDocs[member]!!
             doc.replace("points", doc.getInteger("points").plus(increment))
-            liveMembers[member] = doc
+            levelingDocs[member] = doc
             if (refreshCooldown < Clock.System.now().toEpochMilliseconds()) {
                 levelingColl.replaceOne(
                     Filters.eq("id", member.id.toString()),
-                    liveMembers[member] ?: error("${member.id} was not in players")
+                    levelingDocs[member] ?: error("${member.id} was not in players")
                 )
                 refreshCooldown = Clock.System.now().toEpochMilliseconds() + 30.seconds.inWholeMilliseconds
             }
         }
     }
 
-    private fun checkLevel(member: LiveMember, increment: Int = 1): LevelChange?{
-        if (member.member.isBot)return null
-        if (liveMembers[member] == null)return null
-        val to = Level.getLevel(liveMembers[member]!!.getInteger("points"))
-        if (Level.getLevel(liveMembers[member]!!.getInteger("points")) == Level.getLevel(liveMembers[member]!!.getInteger("points").minus(increment)))return null
-        val rewards = liveMembers[member]!!.getList("unclaimedRewards", String::class.java) as ArrayList<String>
+    private fun checkLevel(member: Member, increment: Int = 1): LevelChange?{
+        if (member.isBot)return null
+        if (levelingDocs[member] == null)return null
+        val to = Level.getLevel(levelingDocs[member]!!.getInteger("points"))
+        if (Level.getLevel(levelingDocs[member]!!.getInteger("points")) == Level.getLevel(levelingDocs[member]!!.getInteger("points").minus(increment)))return null
+        val rewards = levelingDocs[member]!!.getList("unclaimedRewards", String::class.java) as ArrayList<String>
         rewards.add(to.name)
-        liveMembers[member]?.replace("unclaimedRewards", rewards)
-        return LevelChange(Level.getLevel(liveMembers[member]!!.getInteger("points").minus(increment)), to)
+        levelingDocs[member]?.replace("unclaimedRewards", rewards)
+        return LevelChange(Level.getLevel(levelingDocs[member]!!.getInteger("points").minus(increment)), to)
     }
 
     private suspend fun checkLevelMessage(message: Message){
-        val member = message.getAuthorAsMember()!!.live()
-        if (member.member.isBot)return
+        val member = message.getAuthorAsMember()!!
+        if (member.isBot)return
         val levelChange = checkLevel(member) ?: return
         message.reply {
             embed {
                 title = EmbedVariables.title("Level Up")
                 timestamp = Clock.System.now()
-                footer = EmbedVariables.userFooter(member.member)
+                footer = EmbedVariables.userFooter(member)
                 color = levelColor
                 description = """
-                            *Congratulations ${member.member.mention}* <a:party:959481387092676618>
+                            *Congratulations ${member.mention}* <a:party:959481387092676618>
                             > **previous Level:** ${levelChange.from.icon} ${levelChange.from.formattedName}
                             > **your Level:** ${levelChange.to.icon} ${levelChange.to.formattedName}
                             > **your Reward:** ${levelChange.to.reward?.rewardDescription}
@@ -325,18 +326,18 @@ object Leveling {
         }
     }
 
-    private suspend fun checkLevelVoice(member: LiveMember, increment: Int = 1){
-        if (member.member.isBot)return
+    private suspend fun checkLevelVoice(member: Member, increment: Int = 1){
+        if (member.isBot)return
         val levelChange = checkLevel(member, increment) ?: return
         val chat = mainGuild.getChannel(Snowflake(config.getString("generalChat"))) as MessageChannel
         chat.createMessage{
             embed {
                 title = EmbedVariables.title("Level Up")
                 timestamp = Clock.System.now()
-                footer = EmbedVariables.userFooter(member.member)
+                footer = EmbedVariables.userFooter(member)
                 color = levelColor
                 description = """
-                            *Congratulations ${member.member.mention}* <a:party:959481387092676618>
+                            *Congratulations ${member.mention}* <a:party:959481387092676618>
                             > **previous Level** ${levelChange.from.formattedName}
                             > **your Level** ${levelChange.to.formattedName}
                             > **your Reward** ${levelChange.to.reward?.rewardDescription}

@@ -30,7 +30,7 @@ lateinit var kord: Kord
 lateinit var mainGuild: Guild
 lateinit var staffGuild: Guild
 @OptIn(KordPreview::class)
-val liveMembers = hashMapOf<LiveMember, Document>()
+val liveMembers = arrayListOf<LiveMember>()
 
 
 @OptIn(KordPreview::class, PrivilegedIntent::class)
@@ -60,7 +60,7 @@ class SickBot {
                     doc = Document("id", it.id.toString()).append("points", 1).append("unclaimedRewards", arrayListOf<String>())
                     levelingColl.insertOne(doc)
                 }
-                liveMembers[it.live()] = doc!!
+                liveMembers.add(it.live())
             } }
             RoleIDs
             ModuleHandler.register()
