@@ -2,6 +2,7 @@ package net.sickmc.sickbot.utils
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
+import com.mongodb.client.model.Filters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,3 +23,7 @@ val rankGroupColl = db.getCollection<Document>("rankGroups")
 val ranksColl = db.getCollection<Document>("ranks")
 val levelingColl = db.getCollection<Document>("leveling")
 lateinit var config: Document
+
+suspend fun reloadConfig(){
+    config = configColl.findOne(Filters.eq("type", "discordbot")) ?: error("config document is null")
+}

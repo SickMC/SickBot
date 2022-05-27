@@ -131,15 +131,18 @@ object Leveling {
     }
 
     private suspend fun handleRanking() {
-        val channel = mainGuild.getChannel(Snowflake(config.getString("rankingChannel"))) as MessageChannel
         levelingScope.launch {
             while (true) {
                 delay(1.minutes)
-                var message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
-                if (message == null)message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))?.live()
+                val channel = mainGuild.getChannel(Snowflake(config.getString("rankingChannel"))) as MessageChannel
+                var message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))
+                if (message == null){
+                    reloadConfig()
+                    message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))
+                }
                 ranking = levelingDocs.filter { !it.key.isBot }.entries.sortedBy { it.value.getInteger("points") }
                     .map { it.key }.reversed()
-                message!!.message.edit {
+                message!!.edit {
                     embed {
                         title = EmbedVariables.title("Ranking")
                         timestamp = Clock.System.now()
