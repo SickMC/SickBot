@@ -146,6 +146,7 @@ object Log {
             }
         }
         kord.on<MessageUpdateEvent> {
+            if (old?.author == null) return@on
             logChannel.createEmbed {
                 title = EmbedVariables.title("Message Update")
                 color = logColor
