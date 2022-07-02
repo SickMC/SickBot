@@ -1,6 +1,6 @@
 plugins {
     application
-    kotlin("jvm") version "1.6.21"
+    kotlin("jvm") version "1.7.0"
 }
 
 group = "net.sickmc"
@@ -13,13 +13,12 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.kord:kord-core:0.8.0-M14")
+    implementation("dev.kord:kord-core:0.8.x-SNAPSHOT")
     implementation("dev.kord.x:emoji:0.5.0")
 
-    implementation("org.litote.kmongo:kmongo-coroutine:4.5.1")
-    implementation("io.github.crackthecodeabhi:kreds:0.7")
+    implementation("org.litote.kmongo:kmongo-coroutine:4.6.1")
 
-    implementation("org.slf4j:slf4j-simple:1.7.36")
+    implementation("org.slf4j:slf4j-simple:2.0.0")
 }
 
 kotlin.sourceSets.all {
