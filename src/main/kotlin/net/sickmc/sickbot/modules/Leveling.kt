@@ -15,21 +15,16 @@ import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.user.VoiceStateUpdateEvent
-import dev.kord.core.live.LiveMember
-import dev.kord.core.live.live
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.actionRow
-import dev.kord.rest.builder.message.modify.embed
 import dev.kord.rest.builder.message.create.embed
 import dev.kord.rest.builder.message.modify.actionRow
+import dev.kord.rest.builder.message.modify.embed
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import net.sickmc.sickbot.kord
 import net.sickmc.sickbot.liveMembers
 import net.sickmc.sickbot.mainGuild
-import net.sickmc.sickbot.utils.EmbedVariables
-import net.sickmc.sickbot.utils.config
-import net.sickmc.sickbot.utils.levelingColl
 import net.sickmc.sickbot.utils.*
 import org.bson.Document
 import kotlin.time.Duration.Companion.days
@@ -77,7 +72,7 @@ object Leveling {
             if (message.author!!.isBot) return@on
             if (ignoredMessageChannels.contains(message.channel.id)) return@on
             val member = message.getAuthorAsMember()!!
-            if (!messageCooldowns.containsKey(member.id)){
+            if (!messageCooldowns.containsKey(member.id)) {
                 messageCooldowns[member.id] = Clock.System.now().toEpochMilliseconds() + 1.minutes.inWholeMilliseconds
                 handlePoints(member)
                 checkLevelMessage(message)
@@ -96,7 +91,7 @@ object Leveling {
             if (state.getGuild() != mainGuild) return@on
             if (ignoredVoiceChannels.contains(state.channelId)) return@on
             val member = state.getMember()
-            if (!voiceCooldowns.containsKey(member.id)){
+            if (!voiceCooldowns.containsKey(member.id)) {
                 voiceCooldowns[member.id] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
                 handlePoints(member)
                 checkLevelVoice(member)
@@ -113,9 +108,13 @@ object Leveling {
         levelingScope.launch {
             while (true) {
                 delay(5.minutes)
-                val actives = liveMembers.filter { it.member.getVoiceStateOrNull() != null && it.member.getVoiceState().channelId != null && !it.member.isBot }
+                val actives = liveMembers.filter {
+                    it.member.getVoiceStateOrNull() != null && it.member.getVoiceState().channelId != null && !it.member.isBot && !it.member.getVoiceState().isSuppressed && !it.member.getVoiceState().isSelfMuted && !it.member.getVoiceState().isMuted && !it.member.getVoiceState().isDeafened && !it.member.getVoiceState().isSelfDeafened && it.member.getVoiceState().channelId != config.getString(
+                        "afkchannel"
+                    ).toSnowflake()
+                }
                 actives.forEach {
-                    if (!voiceCooldowns.containsKey(it.id)){
+                    if (!voiceCooldowns.containsKey(it.id)) {
                         voiceCooldowns[it.id] = Clock.System.now().toEpochMilliseconds() + 5.minutes.inWholeMilliseconds
                         handlePoints(it.member, 2)
                         checkLevelVoice(it.member, 2)
@@ -136,7 +135,7 @@ object Leveling {
                 delay(1.minutes)
                 val channel = mainGuild.getChannel(Snowflake(config.getString("rankingChannel"))) as MessageChannel
                 var message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))
-                if (message == null){
+                if (message == null) {
                     reloadConfig()
                     message = channel.getMessageOrNull(Snowflake(config.getString("rankingMessage")))
                 }
@@ -154,14 +153,19 @@ object Leveling {
                             > **3.** ${ranking[2].mention} - ${levelingDocs[ranking[2]]?.getInteger("points")} <:sickball:975024822520283156>
                             > **4.** ${ranking[3].mention} - ${levelingDocs[ranking[3]]?.getInteger("points")} <:sickball:975024822520283156>
                             > **5.** ${ranking[4].mention} - ${levelingDocs[ranking[4]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **6.** ${ranking[5].mention} - ${levelingDocs[ranking[5]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **7.** ${ranking[6].mention} - ${levelingDocs[ranking[6]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **8.** ${ranking[7].mention} - ${levelingDocs[ranking[7]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **9.** ${ranking[8].mention} - ${levelingDocs[ranking[8]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **10.** ${ranking[9].mention} - ${levelingDocs[ranking[9]]?.getInteger("points")} <:sickball:975024822520283156>
                             *updates every minute*
                         """.trimIndent()
                     }
                     actionRow {
-                        interactionButton(ButtonStyle.Primary, "leveling_rank"){
+                        interactionButton(ButtonStyle.Primary, "leveling_rank") {
                             label = "Your rank"
                         }
-                        interactionButton(ButtonStyle.Primary, "level_info"){
+                        interactionButton(ButtonStyle.Primary, "level_info") {
                             label = "Levels"
                             emoji = DiscordPartialEmoji(id = Snowflake("975024822520283156"))
                         }
@@ -170,26 +174,30 @@ object Leveling {
             }
         }
         kord.on<GuildButtonInteractionCreateEvent> {
-            if(interaction.componentId != "leveling_rank")return@on
-            if(interaction.user.isBot)return@on
+            if (interaction.componentId != "leveling_rank") return@on
+            if (interaction.user.isBot) return@on
             val response = interaction.deferEphemeralResponse()
             val member = this.interaction.user.asMember()
-            if(!ranking.contains(member)){
-                response.respond { content = "Your rank cannot be found!\nCheck if you interacted on this guild before (chatting/talking)\nIf you think this is an error please open a ticket." }
+            if (!ranking.contains(member)) {
+                response.respond {
+                    content =
+                        "Your rank cannot be found!\nCheck if you interacted on this guild before (chatting/talking)\nIf you think this is an error please open a ticket."
+                }
                 return@on
             }
             response.respond {
                 embed {
                     val points = levelingDocs[member]?.getInteger("points")!!
-                    val percentToNext = ((points.toDouble() / Level.getLevel(points).getNext().from.toDouble()) * 100).toInt()
+                    val percentToNext =
+                        ((points.toDouble() / Level.getLevel(points).getNext().from.toDouble()) * 100).toInt()
                     val progressBuilder = StringBuilder()
                     val progressOnBar = percentToNext / 5
                     var bar = 20
-                    repeat(progressOnBar){
+                    repeat(progressOnBar) {
                         progressBuilder.append("| ")
                         bar--
                     }
-                    repeat(bar){
+                    repeat(bar) {
                         progressBuilder.append("  ")
                     }
                     title = EmbedVariables.title("Rank")
@@ -197,7 +205,9 @@ object Leveling {
                         > **Points:** $points
                         > **Rank:** ${ranking.indexOf(member) + 1}
                         > **Level:** ${Level.getLevel(points).icon} ${Level.getLevel(points).formattedName}
-                        > **Next Level:** ${Level.getLevel(points).getNext().icon} ${Level.getLevel(points).getNext().formattedName}
+                        > **Next Level:** ${Level.getLevel(points).getNext().icon} ${
+                        Level.getLevel(points).getNext().formattedName
+                    }
                         > **Progress:** `$progressBuilder` $percentToNext%
                     """.trimIndent()
                     timestamp = Clock.System.now()
@@ -208,14 +218,14 @@ object Leveling {
         }
     }
 
-    private fun handleLevelInfo(){
+    private fun handleLevelInfo() {
         kord.on<GuildButtonInteractionCreateEvent> {
-            if (interaction.componentId != "level_info")return@on
-            if (interaction.user.isBot)return@on
+            if (interaction.componentId != "level_info") return@on
+            if (interaction.user.isBot) return@on
             val response = interaction.deferEphemeralResponse()
             response.respond {
                 val builder = StringBuilder()
-                Level.levels.forEach{
+                Level.levels.forEach {
                     builder.append("\n > ${it.icon} **${it.formattedName}:** (${it.from} <:sickball:975024822520283156>) × ${it.reward?.rewardDescription ?: "none"}")
                 }
                 embed {
@@ -230,14 +240,14 @@ object Leveling {
             }
         }
     }
+
     private fun handleRankMessage() {
         kord.on<MessageCreateEvent> {
             if (message.content != "!ranking") return@on
             if (message.getGuildOrNull() == null) return@on
             if (message.author?.isBot == true) return@on
             if (!message.author?.asMember(mainGuild.id)?.roleIds?.contains(RoleIDs.getId("Administration"))!!) return@on
-            ranking = levelingDocs.entries.sortedBy { it.value.getInteger("points") }
-                .map { it.key }.reversed()
+            ranking = levelingDocs.entries.sortedBy { it.value.getInteger("points") }.map { it.key }.reversed()
             config.replace("rankingMessage", message.getChannel().createMessage {
                 embed {
                     title = EmbedVariables.title("Ranking")
@@ -250,14 +260,19 @@ object Leveling {
                             > **3.** ${ranking[2].mention} - ${levelingDocs[ranking[2]]?.getInteger("points")} <:sickball:975024822520283156>
                             > **4.** ${ranking[3].mention} - ${levelingDocs[ranking[3]]?.getInteger("points")} <:sickball:975024822520283156>
                             > **5.** ${ranking[4].mention} - ${levelingDocs[ranking[4]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **6.** ${ranking[5].mention} - ${levelingDocs[ranking[5]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **7.** ${ranking[6].mention} - ${levelingDocs[ranking[6]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **8.** ${ranking[7].mention} - ${levelingDocs[ranking[7]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **9.** ${ranking[8].mention} - ${levelingDocs[ranking[8]]?.getInteger("points")} <:sickball:975024822520283156>
+                            > **10.** ${ranking[9].mention} - ${levelingDocs[ranking[9]]?.getInteger("points")} <:sickball:975024822520283156>
                             *updates every minute*
                         """.trimIndent()
                 }
                 actionRow {
-                    interactionButton(ButtonStyle.Primary, "leveling_rank"){
+                    interactionButton(ButtonStyle.Primary, "leveling_rank") {
                         label = "Your rank"
                     }
-                    interactionButton(ButtonStyle.Primary, "level_info"){
+                    interactionButton(ButtonStyle.Primary, "level_info") {
                         label = "Levels"
                         emoji = DiscordPartialEmoji(id = Snowflake("975024822520283156"))
                     }
@@ -269,11 +284,12 @@ object Leveling {
     }
 
     private suspend fun handlePoints(member: Member, increment: Int = 1) {
-        if (member.isBot)return
+        if (member.isBot) return
         if (!levelingDocs.containsKey(member)) {
             var doc = levelingColl.findOne(Filters.eq("id", member.id.toString()))
             if (doc == null) {
-                doc = Document("id", member.id.toString()).append("points", increment).append("unclaimedRewards", arrayListOf<String>())
+                doc = Document("id", member.id.toString()).append("points", increment)
+                    .append("unclaimedRewards", arrayListOf<String>())
                 levelingDocs[member] = doc
                 levelingColl.insertOne(doc)
             }
@@ -292,20 +308,25 @@ object Leveling {
         }
     }
 
-    private fun checkLevel(member: Member, increment: Int = 1): LevelChange?{
-        if (member.isBot)return null
-        if (levelingDocs[member] == null)return null
+    private fun checkLevel(member: Member, increment: Int = 1): LevelChange? {
+        if (member.isBot) return null
+        if (levelingDocs[member] == null) return null
         val to = Level.getLevel(levelingDocs[member]!!.getInteger("points"))
-        if (Level.getLevel(levelingDocs[member]!!.getInteger("points")) == Level.getLevel(levelingDocs[member]!!.getInteger("points").minus(increment)))return null
+        if (Level.getLevel(levelingDocs[member]!!.getInteger("points")) == Level.getLevel(
+                levelingDocs[member]!!.getInteger(
+                    "points"
+                ).minus(increment)
+            )
+        ) return null
         val rewards = levelingDocs[member]!!.getList("unclaimedRewards", String::class.java) as ArrayList<String>
         rewards.add(to.name)
         levelingDocs[member]?.replace("unclaimedRewards", rewards)
         return LevelChange(Level.getLevel(levelingDocs[member]!!.getInteger("points").minus(increment)), to)
     }
 
-    private suspend fun checkLevelMessage(message: Message){
+    private suspend fun checkLevelMessage(message: Message) {
         val member = message.getAuthorAsMember()!!
-        if (member.isBot)return
+        if (member.isBot) return
         val levelChange = checkLevel(member) ?: return
         message.reply {
             embed {
@@ -321,7 +342,7 @@ object Leveling {
                         """.trimIndent()
             }
             actionRow {
-                interactionButton(ButtonStyle.Primary, "level_info"){
+                interactionButton(ButtonStyle.Primary, "level_info") {
                     label = "Levels"
                     emoji = DiscordPartialEmoji(id = Snowflake("975024822520283156"))
                 }
@@ -329,11 +350,11 @@ object Leveling {
         }
     }
 
-    private suspend fun checkLevelVoice(member: Member, increment: Int = 1){
-        if (member.isBot)return
+    private suspend fun checkLevelVoice(member: Member, increment: Int = 1) {
+        if (member.isBot) return
         val levelChange = checkLevel(member, increment) ?: return
         val chat = mainGuild.getChannel(Snowflake(config.getString("generalChat"))) as MessageChannel
-        chat.createMessage{
+        chat.createMessage {
             embed {
                 title = EmbedVariables.title("Level Up")
                 timestamp = Clock.System.now()
@@ -347,7 +368,7 @@ object Leveling {
                         """.trimIndent()
             }
             actionRow {
-                interactionButton(ButtonStyle.Primary, "level_info"){
+                interactionButton(ButtonStyle.Primary, "level_info") {
                     label = "Levels"
                     emoji = DiscordPartialEmoji(Snowflake("975024822520283156"))
                 }
@@ -356,35 +377,62 @@ object Leveling {
     }
 }
 
-enum class Level(val from: Int, val to: Int?, val reward: LevelReward?, val formattedName: String, val icon: String){
+enum class Level(val from: Int, val to: Int?, val reward: LevelReward?, val formattedName: String, val icon: String) {
 
-    WOOD(0, 499, null, "Wood", "<:sickwood:975034271880343552>"),
-    STONE(500, 1499, AchievementReward("stoned"), "Stone", "<:sickstone:975035457425510410>"),
-    COAL(1500, 2999, CoinReward(1000), "Coal", "<:sickcoal:975036476247117834>"),
-    IRON(3000, 4999, RankReward("Wither", 5.days.inWholeMilliseconds), "Iron", "<:sickiron:975037086329618502>"),
-    GOLD(5000, 7249, GadgetReward("gold"), "Gold", "<:sickgold:975037608692432927>"),
-    REDSTONE(7250, 9499, CoinReward(5000), "Redstone", "<:sickredstone:975038278115917875>"),
-    LAPIS(9500, 11999, RankReward("Dragon", 5.days.inWholeMilliseconds), "Lapis", "<:sicklapis:975038899531431936>"),
-    EMERALD(12000, 14999, GadgetReward("emerald"), "Emerald", "<:sickemerald:975039429066522634>"),
-    DIAMOND(15000, 19999, CoinReward(10000), "Diamond", "<:sickdiamond:975039813407354951>"),
+    WOOD(0, 499, null, "Wood", "<:sickwood:975034271880343552>"), STONE(
+        500,
+        1499,
+        AchievementReward("stoned"),
+        "Stone",
+        "<:sickstone:975035457425510410>"
+    ),
+    COAL(1500, 2999, CoinReward(1000), "Coal", "<:sickcoal:975036476247117834>"), IRON(
+        3000,
+        4999,
+        RankReward("Wither", 5.days.inWholeMilliseconds),
+        "Iron",
+        "<:sickiron:975037086329618502>"
+    ),
+    GOLD(5000, 7249, GadgetReward("gold"), "Gold", "<:sickgold:975037608692432927>"), REDSTONE(
+        7250,
+        9499,
+        CoinReward(5000),
+        "Redstone",
+        "<:sickredstone:975038278115917875>"
+    ),
+    LAPIS(
+        9500,
+        11999,
+        RankReward("Dragon", 5.days.inWholeMilliseconds),
+        "Lapis",
+        "<:sicklapis:975038899531431936>"
+    ),
+    EMERALD(12000, 14999, GadgetReward("emerald"), "Emerald", "<:sickemerald:975039429066522634>"), DIAMOND(
+        15000,
+        19999,
+        CoinReward(10000),
+        "Diamond",
+        "<:sickdiamond:975039813407354951>"
+    ),
     NETHERITE(20000, null, RankReward("Wither", null), "Netherite", "<:sicknetherite:975040225829064754>");
 
-    companion object{
+    companion object {
 
         val levels = listOf(WOOD, STONE, COAL, IRON, GOLD, REDSTONE, LAPIS, EMERALD, DIAMOND, NETHERITE)
-        fun getLevel(points: Int): Level{
+        fun getLevel(points: Int): Level {
             var level: Level? = null
             Level.values().forEach {
-                if (it.from > points)return@forEach
-                if (it.to == null)return NETHERITE
-                if (it.to < points)return@forEach
+                if (it.from > points) return@forEach
+                if (it.to == null) return NETHERITE
+                if (it.to < points) return@forEach
                 level = it
             }
             return level!!
         }
 
     }
-    fun getNext(): Level{
+
+    fun getNext(): Level {
         val slot = levels.indexOf(this)
         return levels[slot + 1]
     }
@@ -392,7 +440,7 @@ enum class Level(val from: Int, val to: Int?, val reward: LevelReward?, val form
 }
 
 data class LevelChange(val from: Level, val to: Level)
-abstract class LevelReward{
+abstract class LevelReward {
 
     abstract val rewardDescription: String
     abstract fun perform(member: Member)
@@ -408,7 +456,7 @@ class GadgetReward(gadget: String) : LevelReward() {
 
 }
 
-class CoinReward(coins: Int): LevelReward(){
+class CoinReward(coins: Int) : LevelReward() {
 
     override val rewardDescription: String = "CoinReward ($coins)"
     override fun perform(member: Member) {
@@ -417,7 +465,7 @@ class CoinReward(coins: Int): LevelReward(){
 
 }
 
-class RankReward(rank: String, expire: Long?): LevelReward(){
+class RankReward(rank: String, expire: Long?) : LevelReward() {
 
     override val rewardDescription: String = "RankReward ($rank - ${expire?.milliseconds?.toString() ?: "lifetime"})"
     override fun perform(member: Member) {
@@ -426,7 +474,7 @@ class RankReward(rank: String, expire: Long?): LevelReward(){
 
 }
 
-class AchievementReward(achievement: String): LevelReward(){
+class AchievementReward(achievement: String) : LevelReward() {
 
     override val rewardDescription: String = "AchievementReward ($achievement)"
 
