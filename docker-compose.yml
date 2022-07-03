@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  bot:
+    image: ghcr.io/sickmc/sickbot:master
+    env_file:
+      - /home/sickmc/network/storage/database.env
+    restart: unless-stopped
+    container_name: bot
