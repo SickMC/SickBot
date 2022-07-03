@@ -4,6 +4,6 @@ services:
   bot:
     image: ghcr.io/sickmc/sickbot:master
     env_file:
-      - /home/sickmc/network/storage/database.env
+      - /home/sickmc/network/storage/databases.env
     restart: unless-stopped
     container_name: bot
