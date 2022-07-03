@@ -1,6 +1,6 @@
 package net.sickmc.sickbot
 
-suspend fun main(){
+suspend fun main() {
 
     Startup().start()
 

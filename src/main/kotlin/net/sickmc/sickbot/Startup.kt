@@ -10,7 +10,7 @@ import net.sickmc.sickbot.utils.configColl
 
 class Startup {
 
-    companion object{
+    companion object {
         lateinit var instance: Startup
     }
 
@@ -18,10 +18,10 @@ class Startup {
         instance = this
     }
 
-    suspend fun start(){
+    suspend fun start() {
         config = configColl.findOne(Filters.eq("type", "discordbot")) ?: error("config document is null")
 
-        kord = Kord(config.getString("token")){
+        kord = Kord(config.getString("token")) {
             stackTraceRecovery = true
             cache {
                 users { cache, description ->
@@ -36,7 +36,7 @@ class Startup {
                 guilds { cache, description ->
                     MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
                 }
-                roles{cache, description ->
+                roles { cache, description ->
                     MapEntryCache(cache, description, MapLikeCollection.concurrentHashMap())
                 }
                 channels { cache, description ->

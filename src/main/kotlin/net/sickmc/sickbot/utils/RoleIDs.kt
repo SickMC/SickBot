@@ -12,21 +12,21 @@ object RoleIDs {
         validateIDs()
     }
 
-    fun getId(name: String): Snowflake?{
+    fun getId(name: String): Snowflake? {
         return ids[name]
     }
 
-    fun getPrivateId(name: String): Snowflake?{
+    fun getPrivateId(name: String): Snowflake? {
         return privateIds[name]
     }
 
-    fun validateIDs(){
+    fun validateIDs() {
         databaseScope.launch {
             rankGroupColl.find().toList().forEach {
                 ids[it.getString("rankgroup")] = Snowflake(it.getString("discordRoleID"))
             }
             ranksColl.find().toList().forEach {
-                if (it.getString("discordID") == "")return@forEach
+                if (it.getString("discordID") == "") return@forEach
                 privateIds[it.getString("rank")] = Snowflake(it.getString("discordID"))
             }
         }

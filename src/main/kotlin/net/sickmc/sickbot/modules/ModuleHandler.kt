@@ -1,9 +1,9 @@
 package net.sickmc.sickbot.modules
 
 object ModuleHandler {
-    suspend fun register(){
+    suspend fun register() {
         Log.register()
-        Rules.register()
+        Welcome.register()
         Tickets.register()
         Moderation.register()
         Leveling.register()

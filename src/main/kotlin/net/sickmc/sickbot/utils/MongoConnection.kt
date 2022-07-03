@@ -12,9 +12,17 @@ import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
 
 val databaseScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-val mongoClient = KMongo.createClient(MongoClientSettings.builder()
-    .applyConnectionString(ConnectionString("mongodb://${System.getenv("MONGO_USERNAME")}:${System.getenv("MONGO_PASSWORD")}@${System.getenv("MONGO_ADDRESS")}:${System.getenv("MONGO_PORT")}/?authSource=${System.getenv("MONGO_DATABASE")}"))
-    .build()).coroutine
+val mongoClient = KMongo.createClient(
+    MongoClientSettings.builder().applyConnectionString(
+            ConnectionString(
+                "mongodb://${System.getenv("MONGO_USERNAME")}:${System.getenv("MONGO_PASSWORD")}@${
+                    System.getenv(
+                        "MONGO_ADDRESS"
+                    )
+                }:${System.getenv("MONGO_PORT")}/?authSource=${System.getenv("MONGO_DATABASE")}"
+            )
+        ).build()
+).coroutine
 val db = mongoClient.getDatabase(System.getenv("MONGO_DATABASE"))
 
 val configColl: CoroutineCollection<Document> = db.getCollection("config")
@@ -24,6 +32,6 @@ val ranksColl = db.getCollection<Document>("ranks")
 val levelingColl = db.getCollection<Document>("leveling")
 lateinit var config: Document
 
-suspend fun reloadConfig(){
+suspend fun reloadConfig() {
     config = configColl.findOne(Filters.eq("type", "discordbot")) ?: error("config document is null")
 }

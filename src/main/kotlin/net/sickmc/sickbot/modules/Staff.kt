@@ -17,25 +17,26 @@ import net.sickmc.sickbot.utils.config
 
 object Staff {
 
-    suspend fun register(){
+    suspend fun register() {
         enableAnnouncements()
     }
 
-    private suspend fun enableAnnouncements(){
-        val announcementChannel = staffGuild.getChannel(Snowflake(config.getString("staff_brain_announcements"))) as MessageChannel
+    private suspend fun enableAnnouncements() {
+        val announcementChannel =
+            staffGuild.getChannel(Snowflake(config.getString("staff_brain_announcements"))) as MessageChannel
         val announcementID = Snowflake(config.getString("staff_brain_announcements"))
         val newsChannel = mainGuild.getChannel(Snowflake(config.getString("announcementChannel"))) as MessageChannel
         kord.on<MessageCreateEvent> {
-            if (message.channelId != announcementID)return@on
-            if (message.author == null)return@on
-            if (message.author!!.isBot)return@on
+            if (message.channelId != announcementID) return@on
+            if (message.author == null) return@on
+            if (message.author!!.isBot) return@on
             announcementChannel.createMessage {
                 content = message.content
                 actionRow {
-                    interactionButton(ButtonStyle.Success, "announcement_send"){
+                    interactionButton(ButtonStyle.Success, "announcement_send") {
                         emoji = DiscordPartialEmoji(name = "\uD83D\uDE80")
                     }
-                    interactionButton(ButtonStyle.Danger, "announcement_send_ping"){
+                    interactionButton(ButtonStyle.Danger, "announcement_send_ping") {
                         emoji = DiscordPartialEmoji(name = "\uD83D\uDD14")
                         label = "Send with Ping"
                     }
@@ -43,10 +44,10 @@ object Staff {
             }
         }
         kord.on<ButtonInteractionCreateEvent> {
-            if (interaction.componentId != "announcement_send" && interaction.componentId != "announcement_send_ping")return@on
-            if (interaction.user.isBot)return@on
+            if (interaction.componentId != "announcement_send" && interaction.componentId != "announcement_send_ping") return@on
+            if (interaction.user.isBot) return@on
             val response = interaction.deferPublicResponse()
-            when(interaction.componentId){
+            when (interaction.componentId) {
                 "announcement_send" -> {
                     newsChannel.createMessage {
                         content = interaction.message.content

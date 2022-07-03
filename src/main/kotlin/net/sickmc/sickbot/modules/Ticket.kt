@@ -6,10 +6,7 @@ import dev.kord.common.entity.optional.OptionalBoolean
 import dev.kord.core.behavior.channel.*
 import dev.kord.core.behavior.createTextChannel
 import dev.kord.core.behavior.interaction.modal
-import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.response.respond
-import dev.kord.core.behavior.interaction.updateEphemeralMessage
-import dev.kord.core.behavior.requestMembers
 import dev.kord.core.entity.Member
 import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.core.entity.channel.TextChannel
@@ -17,11 +14,9 @@ import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
 import dev.kord.core.event.interaction.ModalSubmitInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
-import dev.kord.gateway.PrivilegedIntent
 import dev.kord.rest.builder.message.create.actionRow
 import dev.kord.rest.builder.message.create.embed
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import net.sickmc.sickbot.kord
 import net.sickmc.sickbot.mainGuild
@@ -255,14 +250,24 @@ class Ticket(val owner: Member) {
                 Overwrite(
                     RoleIDs.getId("Moderation") ?: error("Moderator ID for Ticket cannot be found!"),
                     OverwriteType.Role,
-                    Permissions(Permission.ReadMessageHistory, Permission.SendMessages, Permission.ManageMessages, Permission.ViewChannel),
+                    Permissions(
+                        Permission.ReadMessageHistory,
+                        Permission.SendMessages,
+                        Permission.ManageMessages,
+                        Permission.ViewChannel
+                    ),
                     Permissions()
                 ),
                 Overwrite(
                     mainGuild.everyoneRole.id,
                     OverwriteType.Role,
                     Permissions(),
-                    Permissions(Permission.ReadMessageHistory, Permission.SendMessages, Permission.ManageMessages, Permission.ViewChannel)
+                    Permissions(
+                        Permission.ReadMessageHistory,
+                        Permission.SendMessages,
+                        Permission.ManageMessages,
+                        Permission.ViewChannel
+                    )
                 ),
                 getBlockOverwrite("Player"),
                 getBlockOverwrite("Wither"),
@@ -395,8 +400,18 @@ class Ticket(val owner: Member) {
         CLOSED
     }
 
-    private fun getBlockOverwrite(name: String): Overwrite{
-        return Overwrite(RoleIDs.getId(name) ?: error("Builder ID for Ticket cannot be found!"), OverwriteType.Role, Permissions(), Permissions(Permission.ReadMessageHistory, Permission.SendMessages, Permission.ManageMessages, Permission.ViewChannel))
+    private fun getBlockOverwrite(name: String): Overwrite {
+        return Overwrite(
+            RoleIDs.getId(name) ?: error("Builder ID for Ticket cannot be found!"),
+            OverwriteType.Role,
+            Permissions(),
+            Permissions(
+                Permission.ReadMessageHistory,
+                Permission.SendMessages,
+                Permission.ManageMessages,
+                Permission.ViewChannel
+            )
+        )
     }
 
 }
