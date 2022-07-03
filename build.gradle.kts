@@ -18,7 +18,7 @@ dependencies {
 
     implementation("org.litote.kmongo:kmongo-coroutine:4.6.1")
 
-    implementation("org.slf4j:slf4j-simple:2.0.0")
+    implementation("org.slf4j:slf4j-simple:2.0.0-alpha7")
 }
 
 kotlin.sourceSets.all {
