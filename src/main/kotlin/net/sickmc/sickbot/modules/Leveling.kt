@@ -380,39 +380,19 @@ object Leveling {
 enum class Level(val from: Int, val to: Int?, val reward: LevelReward?, val formattedName: String, val icon: String) {
 
     WOOD(0, 499, null, "Wood", "<:sickwood:975034271880343552>"), STONE(
-        500,
-        1499,
-        AchievementReward("stoned"),
-        "Stone",
-        "<:sickstone:975035457425510410>"
+        500, 1499, AchievementReward("stoned"), "Stone", "<:sickstone:975035457425510410>"
     ),
     COAL(1500, 2999, CoinReward(1000), "Coal", "<:sickcoal:975036476247117834>"), IRON(
-        3000,
-        4999,
-        RankReward("Wither", 5.days.inWholeMilliseconds),
-        "Iron",
-        "<:sickiron:975037086329618502>"
+        3000, 4999, RankReward("Wither", 5.days.inWholeMilliseconds), "Iron", "<:sickiron:975037086329618502>"
     ),
     GOLD(5000, 7249, GadgetReward("gold"), "Gold", "<:sickgold:975037608692432927>"), REDSTONE(
-        7250,
-        9499,
-        CoinReward(5000),
-        "Redstone",
-        "<:sickredstone:975038278115917875>"
+        7250, 9499, CoinReward(5000), "Redstone", "<:sickredstone:975038278115917875>"
     ),
     LAPIS(
-        9500,
-        11999,
-        RankReward("Dragon", 5.days.inWholeMilliseconds),
-        "Lapis",
-        "<:sicklapis:975038899531431936>"
+        9500, 11999, RankReward("Dragon", 5.days.inWholeMilliseconds), "Lapis", "<:sicklapis:975038899531431936>"
     ),
     EMERALD(12000, 14999, GadgetReward("emerald"), "Emerald", "<:sickemerald:975039429066522634>"), DIAMOND(
-        15000,
-        19999,
-        CoinReward(10000),
-        "Diamond",
-        "<:sickdiamond:975039813407354951>"
+        15000, 19999, CoinReward(10000), "Diamond", "<:sickdiamond:975039813407354951>"
     ),
     NETHERITE(20000, null, RankReward("Wither", null), "Netherite", "<:sicknetherite:975040225829064754>");
 
