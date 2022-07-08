@@ -19,6 +19,11 @@ dependencies {
     implementation("org.litote.kmongo:kmongo-coroutine:4.6.1")
 
     implementation("org.slf4j:slf4j-simple:2.0.0-alpha7")
+
+    val ktorVersion = "2.0.3"
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-websockets:$ktorVersion")
 }
 
 kotlin.sourceSets.all {
@@ -38,5 +43,5 @@ tasks{
 }
 
 application{
-    mainClass.set("net.sickmc.sickbot.MainKt")
+    mainClass.set("net.sickmc.sickbot.StartupKt")
 }
