@@ -7,7 +7,9 @@ import dev.kord.core.behavior.channel.*
 import dev.kord.core.behavior.createTextChannel
 import dev.kord.core.behavior.interaction.modal
 import dev.kord.core.behavior.interaction.response.respond
+import dev.kord.core.builder.components.emoji
 import dev.kord.core.entity.Member
+import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
@@ -16,6 +18,8 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.actionRow
 import dev.kord.rest.builder.message.create.embed
+import dev.kord.x.emoji.Emojis
+import dev.kord.x.emoji.from
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Clock
 import net.sickmc.sickbot.kord
@@ -387,7 +391,7 @@ class Ticket(val owner: Member) {
             }
             actionRow {
                 interactionButton(ButtonStyle.Danger, "ticket_delete") {
-                    emoji = DiscordPartialEmoji(name = "\uD83D\uDDD1️", animated = OptionalBoolean.Value(false))
+                    emoji(ReactionEmoji.from(Emojis.wastebasket))
                 }
             }
         }

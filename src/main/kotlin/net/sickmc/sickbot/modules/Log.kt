@@ -10,6 +10,7 @@ import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.guild.*
 import dev.kord.core.event.message.MessageDeleteEvent
 import dev.kord.core.event.message.MessageUpdateEvent
+import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.on
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
@@ -134,7 +135,24 @@ object Log {
             }
         }
 
+        kord.on<VoiceStateUpdateEvent> {
+            if (this.old == null) return@on
+            if (this.old?.guildId != mainGuild.id) return@on
+            if (this.state.getMember().isBot) return@on
+            if (this.old!!.getChannelOrNull() == null || this.state.getChannelOrNull() == null) return@on
+            if (this.old!!.channelId == this.state.channelId) return@on
+            logChannel.createEmbed {
+                title = "Member Move"
+                color = logColor
+                footer = EmbedVariables.userFooter(state.getMember())
+                timestamp = Clock.System.now()
+                description =
+                    "The user **${state.getMember().mention} was moved from ${old!!.getChannelOrNull()?.mention} to ${state.getChannelOrNull()?.mention}"
+            }
+        }
+
         kord.on<MessageDeleteEvent> {
+            if (message?.author == null) return@on
             if (guildId == null) return@on
             if (message == null) return@on
             if (message?.author!!.isBot) return@on
@@ -152,12 +170,11 @@ object Log {
         }
         kord.on<MessageUpdateEvent> {
             if (old?.author == null) return@on
-            if (old?.author!!.isBot) return@on
+            if (old?.author?.isBot == true) return@on
             logChannel.createEmbed {
                 title = EmbedVariables.title("Message Update")
                 color = logColor
-                if (old?.author != null) footer =
-                    EmbedVariables.userFooter(old?.author!!) else EmbedVariables.selfFooter()
+                footer = EmbedVariables.userFooter(old?.author!!)
                 timestamp = Clock.System.now()
                 description =
                     "The message of **${old?.author?.mention}** changed\n**Old:** ```${old?.content}```\n\n**New:** \n```${new.content.value}```"
