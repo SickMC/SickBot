@@ -80,7 +80,7 @@ object Welcome {
         kord.on<MessageCreateEvent> {
             if (message.content != "!rules" && message.content != "!links") return@on
             if (message.getGuildOrNull() == null) return@on
-            if (message.author?.isBot == true) return@on
+            if (message.author!!.isBot) return@on
             if (!message.author?.asMember(mainGuild.id)?.roleIds?.contains(RoleIDs.getId("Administration"))!!) return@on
             when (message.content) {
                 "!rules" -> sendRuleMessages(message.channel.asChannel())
