@@ -8,6 +8,7 @@ object ModuleHandler {
         Moderation.register()
         Leveling.register()
         Staff.register()
+        Verify.register()
     }
 
 }

@@ -30,6 +30,7 @@ val ticketColl: CoroutineCollection<Document> = db.getCollection("ticket")
 val rankGroupColl = db.getCollection<Document>("rankGroups")
 val ranksColl = db.getCollection<Document>("ranks")
 val levelingColl = db.getCollection<Document>("leveling")
+val playerColl = db.getCollection<Document>("sickPlayers")
 lateinit var config: Document
 
 suspend fun reloadConfig() {
