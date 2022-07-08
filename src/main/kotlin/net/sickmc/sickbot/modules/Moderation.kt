@@ -2,6 +2,8 @@ package net.sickmc.sickbot.modules
 
 import dev.kord.core.behavior.createChatInputCommand
 import dev.kord.core.behavior.interaction.response.respond
+import dev.kord.core.event.interaction.GlobalChatInputCommandInteractionCreateEvent
+import dev.kord.core.event.interaction.GlobalMessageCommandInteractionCreateEvent
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.interaction.int
@@ -20,6 +22,7 @@ object Moderation {
 }
 
 object ClearCommand {
+
     suspend fun register() {
         mainGuild.createChatInputCommand("clear", "Clears multiple messages in chat") {
             int("clear_amount", "The amount of messages") {
