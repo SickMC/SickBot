@@ -10,7 +10,6 @@ import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.interaction.modal
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.response.respond
-import dev.kord.rest.builder.message.create.embed
 import dev.kord.core.builder.components.emoji
 import dev.kord.core.entity.Member
 import dev.kord.core.entity.ReactionEmoji
@@ -19,6 +18,7 @@ import dev.kord.core.event.interaction.GuildModalSubmitInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.actionRow
+import dev.kord.rest.builder.message.create.embed
 import dev.kord.x.emoji.Emojis
 import dev.kord.x.emoji.from
 import io.ktor.websocket.*
@@ -41,16 +41,13 @@ object Verify {
     private fun messageReceiver() {
         databaseScope.launch {
             listenChannel("verify") {
-                send(Frame.Text("jo"))
                 for (frame in incoming) {
-                    println("Message")
                     if (frame !is Frame.Text) continue
                     val components = frame.readText().split("/")
                     if (components[0] != "request") continue
                     val uuid = UUID.fromString(components[1])
                     val code = components[2].toInt()
                     verificationCache[code] = uuid
-                    println("Cached: $code")
                 }
             }
         }
@@ -137,26 +134,26 @@ object Verify {
         kord.on<GuildModalSubmitInteractionCreateEvent> {
             if (interaction.modalId != "verification_code_modal") return@on
             val input = interaction.textInputs["verification_code_insert_field"]!!.value!!
-            val response = interaction.deferEphemeralResponse()
             val code = input.toIntOrNull()
             if (code == null || !verificationCache.containsKey(code)) {
-                response.respond {
+                interaction.respondEphemeral {
                     content = "Your code is invalid!"
                 }
                 return@on
             }
             val member = interaction.user.asMember()
             databaseScope.launch {
-                val doc = playerColl.findOne(Filters.eq("uuid", verificationCache[code]))!!
+                val doc = playerColl.findOne(Filters.eq("uuid", verificationCache[code].toString()))!!
                 doc.replace("discordID", member.id.toString())
-                playerColl.replaceOne(Filters.eq("uuid", verificationCache[code]), doc)
+                playerColl.replaceOne(Filters.eq("uuid", verificationCache[code].toString()), doc)
                 sendChannel(
                     "verify",
                     Frame.Text("success/${verificationCache[code]}/${member.username}#${member.discriminator}")
                 )
-                response.respond {
+                interaction.respondEphemeral {
                     content = "Your account is now linked with **${doc.getString("name")}**!"
                 }
+                verificationCache.remove(code)
             }
         }
     }
