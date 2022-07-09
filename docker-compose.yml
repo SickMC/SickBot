@@ -3,7 +3,10 @@ version: "3"
 services:
   bot:
     image: ghcr.io/sickmc/sickbot:master
+    ports:
+      - "1:8084"
     env_file:
       - /home/sickmc/network/storage/databases.env
+      - /home/sickmc/network/storage/websockets.env
     restart: unless-stopped
     container_name: bot
