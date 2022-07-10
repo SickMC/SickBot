@@ -304,7 +304,7 @@ object Leveling {
                 levelingDocs[member] = doc
                 levelingColl.insertOne(doc)
             }
-            levelingDocs[member] = doc ?: error("document was null in Leveling Module - ${member.id}")
+            levelingDocs[member] = doc ?: error("document was null in Leveling Module - ${member.id.toString()}")
         } else {
             val doc = levelingDocs[member]!!
             doc.replace("points", doc.getInteger("points").plus(increment))
@@ -312,7 +312,7 @@ object Leveling {
             if (refreshCooldown < Clock.System.now().toEpochMilliseconds()) {
                 levelingColl.replaceOne(
                     Filters.eq("id", member.id.toString()),
-                    levelingDocs[member] ?: error("${member.id} was not in players")
+                    levelingDocs[member] ?: error("${member.id.toString()} was not in players")
                 )
                 refreshCooldown = Clock.System.now().toEpochMilliseconds() + 30.seconds.inWholeMilliseconds
             }

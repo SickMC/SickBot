@@ -161,5 +161,5 @@ object Verify {
 }
 
 suspend fun Member.isVerified(): Boolean {
-    return playerColl.findOne(Filters.eq("discordID", this.id)) != null
+    return playerColl.findOne(Filters.eq("discordID", this.id.toString())) != null
 }
