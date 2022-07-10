@@ -7,12 +7,14 @@ import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.edit
+import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Member
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
+import dev.kord.core.event.interaction.GuildSelectMenuInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.on
@@ -27,10 +29,13 @@ import net.sickmc.sickbot.liveMembers
 import net.sickmc.sickbot.mainGuild
 import net.sickmc.sickbot.utils.*
 import org.bson.Document
+import java.util.*
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+
+val levelingDocs = hashMapOf<Member, Document>()
 
 @OptIn(KordPreview::class)
 object Leveling {
@@ -42,7 +47,6 @@ object Leveling {
     private val ignoredMessageChannels = arrayListOf<Snowflake>()
     private val levelingScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var ranking = listOf<Member>()
-    val levelingDocs = hashMapOf<Member, Document>()
 
     suspend fun register() {
         handleMessages()
@@ -52,6 +56,7 @@ object Leveling {
         handleRankMessage()
         handleLevelInfo()
         updater()
+        UnclaimedRewardHandler.register()
     }
 
     private suspend fun updater() {
@@ -169,6 +174,9 @@ object Leveling {
                             label = "Levels"
                             emoji = DiscordPartialEmoji(id = Snowflake("975024822520283156"))
                         }
+                        interactionButton(ButtonStyle.Secondary, "level_unclaimed") {
+                            label = "Unclaimed Rewards"
+                        }
                     }
                 }
             }
@@ -226,7 +234,7 @@ object Leveling {
             response.respond {
                 val builder = StringBuilder()
                 Level.levels.forEach {
-                    builder.append("\n > ${it.icon} **${it.formattedName}:** (${it.from} <:sickball:975024822520283156>) × ${it.reward?.rewardDescription ?: "none"}")
+                    builder.append("\n > ${it.icon} **${it.formattedName}:** (${it.from} <:sickball:975024822520283156>) × ${it.reward.rewardDescription}")
                 }
                 embed {
                     title = EmbedVariables.title("Levels")
@@ -275,6 +283,9 @@ object Leveling {
                     interactionButton(ButtonStyle.Primary, "level_info") {
                         label = "Levels"
                         emoji = DiscordPartialEmoji(id = Snowflake("975024822520283156"))
+                    }
+                    interactionButton(ButtonStyle.Secondary, "level_unclaimed") {
+                        label = "Unclaimed Rewards"
                     }
                 }
             }.id.toString())
@@ -338,7 +349,8 @@ object Leveling {
                             *Congratulations ${member.mention}* <a:party:959481387092676618>
                             > **previous Level:** ${levelChange.from.icon} ${levelChange.from.formattedName}
                             > **your Level:** ${levelChange.to.icon} ${levelChange.to.formattedName}
-                            > **your Reward:** ${levelChange.to.reward?.rewardDescription}
+                            > **your Reward:** ${levelChange.to.reward.rewardDescription}
+                            You can claim your reward in <#${config.getString("rankingChannel")}>
                         """.trimIndent()
             }
             actionRow {
@@ -364,7 +376,7 @@ object Leveling {
                             *Congratulations ${member.mention}* <a:party:959481387092676618>
                             > **previous Level** ${levelChange.from.formattedName}
                             > **your Level** ${levelChange.to.formattedName}
-                            > **your Reward** ${levelChange.to.reward?.rewardDescription}
+                            > **your Reward** ${levelChange.to.reward.rewardDescription}
                         """.trimIndent()
             }
             actionRow {
@@ -377,22 +389,22 @@ object Leveling {
     }
 }
 
-enum class Level(val from: Int, val to: Int?, val reward: LevelReward?, val formattedName: String, val icon: String) {
+enum class Level(val from: Int, val to: Int?, val reward: LevelReward, val formattedName: String, val icon: String) {
 
-    WOOD(0, 499, null, "Wood", "<:sickwood:975034271880343552>"), STONE(
+    WOOD(0, 499, EmptyReward(), "Wood", "<:sickwood:975034271880343552>"), STONE(
         500, 1499, AchievementReward("stoned"), "Stone", "<:sickstone:975035457425510410>"
     ),
-    COAL(1500, 2999, CoinReward(1000), "Coal", "<:sickcoal:975036476247117834>"), IRON(
+    COAL(1500, 2999, SmucksReward(1000), "Coal", "<:sickcoal:975036476247117834>"), IRON(
         3000, 4999, RankReward("Wither", 5.days.inWholeMilliseconds), "Iron", "<:sickiron:975037086329618502>"
     ),
     GOLD(5000, 7249, GadgetReward("gold"), "Gold", "<:sickgold:975037608692432927>"), REDSTONE(
-        7250, 9499, CoinReward(5000), "Redstone", "<:sickredstone:975038278115917875>"
+        7250, 9499, SmucksReward(5000), "Redstone", "<:sickredstone:975038278115917875>"
     ),
     LAPIS(
         9500, 11999, RankReward("Dragon", 5.days.inWholeMilliseconds), "Lapis", "<:sicklapis:975038899531431936>"
     ),
     EMERALD(12000, 14999, GadgetReward("emerald"), "Emerald", "<:sickemerald:975039429066522634>"), DIAMOND(
-        15000, 19999, CoinReward(10000), "Diamond", "<:sickdiamond:975039813407354951>"
+        15000, 19999, SmucksReward(10000), "Diamond", "<:sickdiamond:975039813407354951>"
     ),
     NETHERITE(20000, null, RankReward("Wither", null), "Netherite", "<:sicknetherite:975040225829064754>");
 
@@ -423,47 +435,162 @@ data class LevelChange(val from: Level, val to: Level)
 abstract class LevelReward {
 
     abstract val rewardDescription: String
-    abstract fun perform(member: Member)
+    abstract suspend fun perform(member: Member)
 
 }
 
-class GadgetReward(gadget: String) : LevelReward() {
+class EmptyReward : LevelReward() {
+
+    override val rewardDescription: String = "No Reward"
+    override suspend fun perform(member: Member) {}
+
+}
+
+class GadgetReward(val gadget: String) : LevelReward() {
 
     override val rewardDescription: String = "GadgetReward ($gadget)"
-    override fun perform(member: Member) {
-        TODO("Not yet implemented")
+    override suspend fun perform(member: Member) {
+        val playerDoc = playerColl.findOne(Filters.eq("discordID", member.id.toString()))!!
+        val lobbyDoc = lobbyColl.findOne(
+            Filters.eq("uuid", playerDoc.getString("uuid"))
+        )!!
+        val gadgets = lobbyDoc.getList("gadgets", String::class.java).add(gadget)
+        lobbyDoc.replace("gadgets", gadgets)
+        lobbyColl.updateOne(
+            Filters.eq("uuid", playerDoc.getString("uuid")),
+            lobbyDoc
+        )
+        sendLevelPerformMessage(
+            UUID.fromString(playerDoc.getString("uuid")),
+            "You have received your GadgetReward $gadget"
+        )
     }
 
 }
 
-class CoinReward(coins: Int) : LevelReward() {
+class SmucksReward(val coins: Int) : LevelReward() {
 
-    override val rewardDescription: String = "CoinReward ($coins)"
-    override fun perform(member: Member) {
-        TODO("Not yet implemented")
+    override val rewardDescription: String = "SmucksReward ($coins)"
+    override suspend fun perform(member: Member) {
+        val playerDoc = playerColl.findOne(Filters.eq("discordID", member.id.toString()))!!
+        val smucks = playerDoc.getInteger("smucks")
+        playerDoc.replace("smucks", smucks + coins)
+        playerColl.replaceOne(Filters.eq("discordID", member.id.toString()), playerDoc)
+        sendLevelPerformMessage(
+            UUID.fromString(playerDoc.getString("uuid")),
+            "You claimed your SmucksReward: $coins Smucks!"
+        )
     }
 
 }
 
-class RankReward(rank: String, expire: Long?) : LevelReward() {
+class RankReward(private val rank: String, private val expire: Long?) : LevelReward() {
 
     override val rewardDescription: String = "RankReward ($rank - ${expire?.milliseconds?.toString() ?: "lifetime"})"
-    override fun perform(member: Member) {
-        TODO("Not yet implemented")
+    override suspend fun perform(member: Member) {
+        val playerDoc = playerColl.findOne(Filters.eq("discordID", member.id.toString()))!!
+        if (expire == null) playerDoc.replace("permanentRank", rank)
+        else {
+            playerDoc.replace("rank", rank)
+            playerDoc.replace("rankExpire", expire.toString())
+        }
+        playerColl.replaceOne(Filters.eq("discordID", member.id.toString()), playerDoc)
+        sendLevelPerformMessage(
+            UUID.fromString(playerDoc.getString("uuid")),
+            if (expire == null) "You claimed the rank: $rank" else "You claimed the rank: $rank for ${expire.milliseconds.toString()}"
+        )
     }
 
 }
 
-class AchievementReward(achievement: String) : LevelReward() {
+class AchievementReward(private val achievement: String) : LevelReward() {
 
     override val rewardDescription: String = "AchievementReward ($achievement)"
 
-    override fun perform(member: Member) {
-        TODO("Not yet implemented")
+    override suspend fun perform(member: Member) {
+        val playerDoc = playerColl.findOne(Filters.eq("discordID", member.id.toString()))!!
+        playerDoc.getList("achievements", String::class.java).add(achievement)
+        playerColl.replaceOne(Filters.eq("discordID", member.id.toString()), playerDoc)
+        sendLevelPerformMessage(
+            UUID.fromString(playerDoc.getString("uuid")),
+            "You claimed the achievement: $achievement"
+        )
     }
 
 }
 
+suspend fun sendLevelPerformMessage(player: UUID, message: String) {
+    sendChannelMessage("rewards", "discord/$player/$message")
+}
 
+object UnclaimedRewardHandler {
 
+    fun register() {
+        buttonListener
+        menuListener
+    }
 
+    private val buttonListener = kord.on<GuildButtonInteractionCreateEvent> {
+        if (interaction.componentId != "level_unclaimed") return@on
+        val doc = levelingDocs[interaction.user.asMember()] ?: return@on
+        val response = interaction.deferEphemeralResponse()
+        val member = interaction.user.asMember()
+        if (!member.isVerified()) {
+            response.respond {
+                content = "You must be verified to use this feature!"
+            }
+            return@on
+        }
+        if (doc.getList("unclaimedRewards", String::class.java).isEmpty()) {
+            response.respond {
+                embed {
+                    title = "No Unclaimed Rewards"
+                    description = """
+                            You have to level to get rewards.
+                            You can check your level and the rewards in the <#${config.getString("rankingChannel")}> channel.
+                        """.trimIndent()
+                    color = levelColor
+                }
+            }
+            return@on
+        }
+        val rewardLevels = doc.getList("unclaimedRewards", String::class.java).map { Level.valueOf(it) }
+        response.respond {
+            actionRow {
+                selectMenu("unclaimed_rewards_picking") {
+                    rewardLevels.forEach {
+                        option(
+                            label = it.reward.rewardDescription,
+                            value = it.name
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private val menuListener = kord.on<GuildSelectMenuInteractionCreateEvent> {
+        if (interaction.componentId != "unclaimed_rewards_picking") return@on
+        val member = interaction.user.asMember()
+        val doc = levelingDocs[interaction.user.asMember()] ?: return@on
+        val docList = doc.getList("unclaimedRewards", String::class.java)
+        val selected = interaction.values.map { Level.valueOf(it) }
+        selected.forEach {
+            it.reward.perform(member)
+            docList.remove(it.name)
+        }
+        doc.replace("unclaimedRewards", docList)
+        levelingDocs[member] = doc
+        interaction.respondEphemeral {
+            embed {
+                title = "Rewards"
+                description = """
+                        You have claimed the following rewards: 
+                        **${selected.joinToString("\n") { it.reward.rewardDescription }}**
+                    """.trimIndent()
+                color = levelColor
+            }
+        }
+    }
+
+}
