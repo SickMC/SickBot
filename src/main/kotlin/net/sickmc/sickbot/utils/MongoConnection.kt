@@ -31,6 +31,7 @@ val rankGroupColl = db.getCollection<Document>("rankGroups")
 val ranksColl = db.getCollection<Document>("ranks")
 val levelingColl = db.getCollection<Document>("leveling")
 val playerColl = db.getCollection<Document>("sickPlayers")
+val lobbyColl = db.getCollection<Document>("lobbyPlayers")
 lateinit var config: Document
 
 suspend fun reloadConfig() {
