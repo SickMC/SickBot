@@ -564,6 +564,7 @@ object UnclaimedRewardHandler {
                             value = it.name
                         )
                     }
+                    allowedValues = 1 .. rewardLevels.size
                 }
             }
         }
