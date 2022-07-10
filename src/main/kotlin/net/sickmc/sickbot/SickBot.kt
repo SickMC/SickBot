@@ -19,6 +19,7 @@ import dev.kord.gateway.PrivilegedIntent
 import dev.kord.gateway.builder.RequestGuildMembersBuilder
 import net.sickmc.sickbot.modules.Leveling
 import net.sickmc.sickbot.modules.ModuleHandler
+import net.sickmc.sickbot.modules.levelingDocs
 import net.sickmc.sickbot.utils.RoleIDs
 import net.sickmc.sickbot.utils.config
 import net.sickmc.sickbot.utils.levelingColl
@@ -59,7 +60,7 @@ class SickBot {
                         levelingColl.insertOne(doc)
                     }
                     liveMembers.add(it.live())
-                    Leveling.levelingDocs[it] = doc!!
+                    levelingDocs[it] = doc!!
                 }
             }
             RoleIDs
