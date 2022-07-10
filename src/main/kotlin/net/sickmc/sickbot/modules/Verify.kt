@@ -67,7 +67,7 @@ object Verify {
                     description = """
                         **Steps for your Minecraft-Discord verification**
                         > 1. Join play.sickmc.net in Minecraft
-                        > 2. Type /verify in the chat and copy the received code
+                        > 2. Type /verify in the minecraft chat and copy the received code
                         > 3. Click on the <a:checkmark:959175780770918411> button below and insert the code
                         > 4. You're verified! <a:party:959481387092676618>
                         If you need help feel free to create a <#908093243177197618> or get support in <#908092816545157170>!
