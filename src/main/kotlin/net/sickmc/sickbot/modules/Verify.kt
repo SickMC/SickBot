@@ -158,8 +158,8 @@ object Verify {
         }
     }
 
-    private suspend fun Member.isVerified(): Boolean {
-        return playerColl.findOne(Filters.eq("discordID", this.id)) != null
-    }
+}
 
+suspend fun Member.isVerified(): Boolean {
+    return playerColl.findOne(Filters.eq("discordID", this.id)) != null
 }
