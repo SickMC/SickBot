@@ -17,7 +17,6 @@ import dev.kord.core.supplier.EntitySupplyStrategy
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
 import dev.kord.gateway.builder.RequestGuildMembersBuilder
-import net.sickmc.sickbot.modules.Leveling
 import net.sickmc.sickbot.modules.ModuleHandler
 import net.sickmc.sickbot.modules.levelingDocs
 import net.sickmc.sickbot.utils.RoleIDs
