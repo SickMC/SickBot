@@ -25,6 +25,17 @@ suspend inline fun listenChannel(
     }
 }
 
+suspend fun sendChannelMessage(channel: String, message: String) {
+    webClient.webSocket(
+        method = HttpMethod.Get,
+        host = System.getenv("WEBSOCKET_CLIENT_ADDRESS"),
+        port = System.getenv("WEBSOCKET_PORT").toInt(),
+        path = "/$channel"
+    ) {
+        send(message)
+    }
+}
+
 suspend fun sendChannel(channel: String, message: Frame) {
     webClient.webSocket(
         method = HttpMethod.Get,
