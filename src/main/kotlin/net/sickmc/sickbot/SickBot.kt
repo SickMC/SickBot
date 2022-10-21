@@ -16,6 +16,7 @@ import dev.kord.gateway.PrivilegedIntent
 import dev.kord.gateway.builder.RequestGuildMembersBuilder
 import net.sickmc.sickbot.modules.leveling.LevelUser
 import net.sickmc.sickbot.modules.leveling.levelingCache
+import net.sickmc.sickbot.modules.leveling.registerLevelingHandlers
 import net.sickmc.sickbot.modules.registerWelcomeHandlers
 import net.sickmc.sickbot.modules.ticket.registerTicketHandlers
 import net.sickmc.sickbot.utils.config
@@ -49,6 +50,7 @@ object SickBot {
 
             registerTicketHandlers()
             registerWelcomeHandlers()
+            registerLevelingHandlers()
 
             println("Bot has started")
         }
@@ -63,7 +65,7 @@ object SickBot {
 suspend fun Member.load() {
     val result = leveling.findOne(LevelUser::snowflake eq id)
     levelingCache += if (result == null) {
-        val levelUser = LevelUser(id, 0, listOf(), null)
+        val levelUser = LevelUser(id, 0, arrayListOf(), null)
         leveling.insertOne(levelUser)
         levelUser
     } else {
