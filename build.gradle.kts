@@ -2,10 +2,12 @@ plugins {
     application
     kotlin("jvm") version "1.7.20"
     kotlin("plugin.serialization") version "1.7.20"
+
+    id("com.github.breadmoirai.github-release") version "2.4.1"
 }
 
 group = "net.sickmc"
-version = "1.0.0"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
@@ -45,4 +47,15 @@ tasks{
 
 application{
     mainClass.set("net.sickmc.sickbot.StartupKt")
+}
+
+githubRelease {
+    token(findProperty("github.token")?.toString())
+
+    val split = "SickMC/SickBot".split("/")
+    owner(split[0])
+    repo(split[1])
+    tagName("v${project.version}")
+    body("Add mongo integration")
+    targetCommitish("master")
 }
