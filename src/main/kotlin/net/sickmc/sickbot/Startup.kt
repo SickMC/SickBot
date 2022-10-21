@@ -5,11 +5,11 @@ import dev.kord.cache.map.MapLikeCollection
 import dev.kord.cache.map.internal.MapEntryCache
 import dev.kord.cache.map.lruLinkedHashMap
 import dev.kord.core.Kord
+import net.sickmc.sickapi.util.configs
 import net.sickmc.sickbot.utils.config
-import net.sickmc.sickbot.utils.configColl
 
 suspend fun main() {
-    config = configColl.findOne(Filters.eq("type", "discordbot")) ?: error("config document is null")
+    config = configs.findOne(Filters.eq("type", "discord")) ?: error("config document is null")
 
     kord = Kord(config.getString("token")) {
         stackTraceRecovery = true
@@ -40,5 +40,5 @@ suspend fun main() {
             }
         }
     }
-    SickBot().setupBot()
+    SickBot.setupBot()
 }
