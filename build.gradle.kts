@@ -21,7 +21,7 @@ dependencies {
     implementation("org.litote.kmongo:kmongo-coroutine-serialization:4.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
-    implementation("net.sickmc:sickapi:1.0.8")
+    implementation("net.sickmc:sickapi:1.0.10")
 
     implementation("org.slf4j:slf4j-simple:2.0.3")
 
