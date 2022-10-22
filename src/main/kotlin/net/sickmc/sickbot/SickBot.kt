@@ -14,6 +14,7 @@ import dev.kord.core.supplier.EntitySupplyStrategy
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
 import dev.kord.gateway.builder.RequestGuildMembersBuilder
+import net.sickmc.sickapi.rank.loadRanks
 import net.sickmc.sickbot.modules.leveling.LevelUser
 import net.sickmc.sickbot.modules.leveling.levelingCache
 import net.sickmc.sickbot.modules.leveling.registerLevelingHandlers
@@ -32,6 +33,7 @@ object SickBot {
 
     suspend fun setupBot() {
         kord.on<ReadyEvent> {
+            loadRanks()
             kord.editPresence {
                 status = PresenceStatus.Online
                 playing("on sickmc.net")
@@ -46,6 +48,9 @@ object SickBot {
             mainGuild.requestMembers(builder).collect { event -> event.members.forEach { it.load() } }
             kord.createGuildUserCommand(mainGuild.id, "add to ticket") {
                 defaultMemberPermissions = Permissions(Permission.ManageMessages)
+            }
+            kord.createGuildMessageCommand(mainGuild.id, "update rank message") {
+                defaultMemberPermissions = Permissions(Permission.Administrator)
             }
 
             registerTicketHandlers()
