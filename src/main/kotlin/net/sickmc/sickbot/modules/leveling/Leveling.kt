@@ -18,6 +18,7 @@ import net.sickmc.sickbot.mainGuild
 import net.sickmc.sickbot.utils.*
 import org.litote.kmongo.eq
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 val levelingCache: ArrayList<LevelUser> = arrayListOf()
 val usersToUpdate = arrayListOf<Snowflake>()
@@ -31,6 +32,7 @@ fun registerLevelingHandlers() {
     rankingMessageCreateHandler
     rankingMessageUpdateHandler
     rankingButtonHandler
+    rewardSelectMenuHandler
 }
 
 private val updater = databaseScope.launch {
@@ -39,7 +41,7 @@ private val updater = databaseScope.launch {
             leveling.replaceOne(LevelUser::snowflake eq it.snowflake, it)
         }
         usersToUpdate.clear()
-        delay(1.minutes)
+        delay(5.minutes)
     }
 }
 
