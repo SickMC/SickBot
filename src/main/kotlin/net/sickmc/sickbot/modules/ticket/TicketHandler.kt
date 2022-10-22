@@ -39,7 +39,7 @@ private val ticketMessageListener = kord.on<MessageCreateEvent> {
             selfFooter()
         }
         actionRow {
-            interactionButton(ButtonStyle.Secondary, "ticket_create") {
+            interactionButton(ButtonStyle.Primary, "ticket_create") {
                 label = "Open Ticket"
                 emoji = DiscordPartialEmoji(name = "\uD83D\uDCE9")
             }
