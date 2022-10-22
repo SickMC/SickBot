@@ -9,7 +9,7 @@ import net.sickmc.sickbot.modules.leveling.rewards.SmucksReward
 import net.sickmc.sickbot.utils.snowflake
 import kotlin.time.Duration.Companion.days
 
-enum class Level(val emoji: DiscordPartialEmoji, val start: Int, val end: Int, val reward: Reward?) {
+enum class Level(val emoji: DiscordPartialEmoji, val start: Int, val end: Int?, val reward: Reward?) {
     Wood(
         DiscordPartialEmoji(id = "975034271880343552".snowflake(), name = "sickwood"),
         0,
@@ -64,15 +64,15 @@ enum class Level(val emoji: DiscordPartialEmoji, val start: Int, val end: Int, v
     Netherite(
         DiscordPartialEmoji(id = "975040225829064754".snowflake(), name = "sicknetherite"),
         20000,
-        Int.MAX_VALUE,
+        null,
         RankReward("Wither", null)
     )
 }
 
-fun Int.level() = Level.values().find { it.start <= this && it.end >= this }
+fun Int.level() = Level.values().find { it.start <= this && (it.end == null || it.end >= this) }
     ?: error("User's rank cannot be determined!")
 
-fun Level.next(): Level {
+fun Level.next(): Level? {
     val levels = Level.values()
-    return levels[levels.indexOf(this) + 1]
+    return levels.getOrNull(levels.indexOf(this) + 1)
 }
