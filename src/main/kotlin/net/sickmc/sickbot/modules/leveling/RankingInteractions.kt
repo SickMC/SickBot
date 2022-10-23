@@ -67,7 +67,7 @@ val rankingButtonHandler = kord.on<GuildButtonInteractionCreateEvent> {
                     description = buildString {
                         Level.values().forEach { level ->
                             append(
-                                "> <:${level.emoji.name}:${level.emoji.id}> **${level.name}**  " + "${level.start} <:sickball:975024822520283156> - ${level.end ?: "∞"} <:sickball:975024822520283156> " + "${if (level == levelingCache.find { it.snowflake == interaction.user.id }?.points?.level()) "\uD83E\uDC14" else ""} \n"
+                                "> <:${level.emoji.name}:${level.emoji.id}> **${level.name}**  " + "${level.start} <:sickball:975024822520283156> - ${level.end ?: "∞"} <:sickball:975024822520283156> \n"
                             )
                         }
                     }
