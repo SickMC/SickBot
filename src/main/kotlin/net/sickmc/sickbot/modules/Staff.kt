@@ -5,6 +5,7 @@ import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.getChannelOf
 import dev.kord.core.behavior.interaction.response.respond
+import dev.kord.core.entity.channel.NewsChannel
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.interaction.ButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
@@ -24,7 +25,7 @@ private suspend fun enableAnnouncements() {
     val announcementID = config.getString("staff_announcement_create").snowflake()
     val announcementChannel =
         staffGuild.getChannelOf<TextChannel>(announcementID)
-    val newsChannel = mainGuild.getChannelOf<TextChannel>(config.getString("announcementChannel").snowflake())
+    val newsChannel = mainGuild.getChannelOf<NewsChannel>(config.getString("announcementChannel").snowflake())
     kord.on<MessageCreateEvent> {
         if (message.channelId != announcementID) return@on
         if (message.author == null) return@on
