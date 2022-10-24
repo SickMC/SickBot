@@ -18,6 +18,7 @@ import net.sickmc.sickapi.rank.loadRanks
 import net.sickmc.sickbot.modules.leveling.LevelUser
 import net.sickmc.sickbot.modules.leveling.levelingCache
 import net.sickmc.sickbot.modules.leveling.registerLevelingHandlers
+import net.sickmc.sickbot.modules.registerStaffModule
 import net.sickmc.sickbot.modules.registerWelcomeHandlers
 import net.sickmc.sickbot.modules.ticket.registerTicketHandlers
 import net.sickmc.sickbot.utils.config
@@ -56,6 +57,7 @@ object SickBot {
             registerTicketHandlers()
             registerWelcomeHandlers()
             registerLevelingHandlers()
+            registerStaffModule()
 
             println("Bot has started")
         }
