@@ -3,12 +3,14 @@ package net.sickmc.sickbot.modules.leveling
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.reply
+import dev.kord.core.behavior.requestMembers
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.VoiceState
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.on
+import dev.kord.gateway.PrivilegedIntent
 import dev.kord.rest.builder.message.create.UserMessageCreateBuilder
 import dev.kord.rest.builder.message.create.embed
 import kotlinx.coroutines.*
@@ -82,23 +84,26 @@ private val voiceJoinListener = kord.on<VoiceStateUpdateEvent> {
     checkLevelChange(levelUser, null)
 }
 
+@OptIn(PrivilegedIntent::class)
 private val activeVoiceJob = CoroutineScope(Dispatchers.Default + SupervisorJob()).launch {
     while (true) {
         delay(5.minutes)
-        mainGuild.voiceStates.collect {
-            if (!it.valid()) return@collect
-            val member = it.getMember()
-            if (member.isBot) return@collect
-            if (config.getList("ignoredLevelingChannels", String::class.java).map { channel -> channel.snowflake() }
-                    .contains(it.channelId)) return@collect
-            if (!voiceCooldowns.containsKey(member.id)) voiceCooldowns[member.id] =
-                System.currentTimeMillis() + voiceCooldown
-            else if (voiceCooldowns[member.id]!! > System.currentTimeMillis()) return@collect
-            val levelUser = levelingCache.find { levelUser -> levelUser.snowflake == member.id }!!
-            levelUser.points = levelUser.points.plus(voicePoints)
-            voiceCooldowns[member.id] = System.currentTimeMillis() + voiceCooldown
-            if (!usersToUpdate.contains(levelUser.snowflake)) usersToUpdate.add(levelUser.snowflake)
-            checkLevelChange(levelUser, null)
+        mainGuild.requestMembers().collect { event ->
+            event.members.forEach {
+                val voiceState = it.getVoiceState()
+                if (!voiceState.valid()) return@collect
+                if (it.isBot) return@collect
+                if (config.getList("ignoredLevelingChannels", String::class.java).map { channel -> channel.snowflake() }
+                        .contains(voiceState.channelId)) return@collect
+                if (!voiceCooldowns.containsKey(it.id)) voiceCooldowns[it.id] =
+                    System.currentTimeMillis() + voiceCooldown
+                else if (voiceCooldowns[it.id]!! > System.currentTimeMillis()) return@collect
+                val levelUser = levelingCache.find { levelUser -> levelUser.snowflake == it.id }!!
+                levelUser.points = levelUser.points.plus(voicePoints)
+                voiceCooldowns[it.id] = System.currentTimeMillis() + voiceCooldown
+                if (!usersToUpdate.contains(levelUser.snowflake)) usersToUpdate.add(levelUser.snowflake)
+                checkLevelChange(levelUser, null)
+            }
         }
     }
 }
