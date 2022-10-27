@@ -85,7 +85,7 @@ private val voiceJoinListener = kord.on<VoiceStateUpdateEvent> {
 }
 
 @OptIn(PrivilegedIntent::class)
-private val activeVoiceJob = CoroutineScope(Dispatchers.Default + SupervisorJob()).launch {
+private val activeVoiceJob = CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
     while (true) {
         delay(5.minutes)
         mainGuild.requestMembers().collect { event ->
