@@ -7,7 +7,7 @@ import net.sickmc.sickapi.util.StaticColor
 import net.sickmc.sickapi.util.players
 import org.litote.kmongo.eq
 
-class SmucksReward(val smucks: Int) : Reward() {
+class SmucksReward(private val smucks: Int) : Reward() {
     override val name: String = "Smuck reward: $smucks"
     override val color: ColorHolder = StaticColor(0xFFC675)
 

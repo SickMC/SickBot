@@ -8,7 +8,7 @@ import net.sickmc.sickapi.util.ColorHolder
 import net.sickmc.sickapi.util.players
 import org.litote.kmongo.eq
 
-class GadgetReward(val gadget: Gadget) : Reward() {
+class GadgetReward(private val gadget: Gadget) : Reward() {
     override val color: ColorHolder = gadget.color
     override val name: String = "Gadget reward: $gadget"
 

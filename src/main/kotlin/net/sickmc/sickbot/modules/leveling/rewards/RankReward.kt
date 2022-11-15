@@ -11,7 +11,7 @@ import net.sickmc.sickapi.util.players
 import org.litote.kmongo.eq
 import kotlin.time.Duration
 
-class RankReward(val rankName: String, val expiration: Duration?) : Reward() {
+class RankReward(private val rankName: String, private val expiration: Duration?) : Reward() {
     override val name: String = "Rank reward: $rankName for $expiration"
     override val color: ColorHolder = StaticColor(0xFF497C)
 
