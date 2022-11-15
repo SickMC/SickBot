@@ -25,7 +25,7 @@ enum class Level(val emoji: DiscordPartialEmoji, val start: Int, val end: Int?, 
     Coal(
         DiscordPartialEmoji(name = "sickcoal", id = "975036476247117834".snowflake()), 1500, 2999, SmucksReward(1000)
     ),
-    Icon(
+    Iron(
         DiscordPartialEmoji(id = "975037086329618502".snowflake(), name = "sickiron"),
         3000,
         4999,
