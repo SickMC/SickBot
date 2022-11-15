@@ -12,7 +12,7 @@ import org.litote.kmongo.eq
 import kotlin.time.Duration
 
 class RankReward(private val rankName: String, private val expiration: Duration?) : Reward() {
-    override val name: String = "Rank reward: $rankName for $expiration"
+    override val name: String = "$rankName rank for ${expiration ?: "permanent"}"
     override val color: ColorHolder = StaticColor(0xFF497C)
 
     override suspend fun applyTo(player: SickPlayer) {

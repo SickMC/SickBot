@@ -10,7 +10,7 @@ import org.litote.kmongo.eq
 
 class AdvancementReward(private val advancement: Advancement, private val level: Int) : Reward() {
     override val color: ColorHolder = advancement.color
-    override val name: String = "Advancement reward: ${advancement.name} - $level"
+    override val name: String = "${advancement.name} advancement"
 
     override suspend fun applyTo(player: SickPlayer) {
         var playerAdvancement = player.advancements.find { it.advancement.uuid == advancement.uuid }

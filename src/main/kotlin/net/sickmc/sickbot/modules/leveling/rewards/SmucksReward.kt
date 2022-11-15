@@ -8,7 +8,7 @@ import net.sickmc.sickapi.util.players
 import org.litote.kmongo.eq
 
 class SmucksReward(private val smucks: Int) : Reward() {
-    override val name: String = "Smuck reward: $smucks"
+    override val name: String = "$smucks smucks"
     override val color: ColorHolder = StaticColor(0xFFC675)
 
     override suspend fun applyTo(player: SickPlayer) {

@@ -10,7 +10,7 @@ import org.litote.kmongo.eq
 
 class GadgetReward(private val gadget: Gadget) : Reward() {
     override val color: ColorHolder = gadget.color
-    override val name: String = "Gadget reward: $gadget"
+    override val name: String = "${gadget.name} gadget"
 
     override suspend fun applyTo(player: SickPlayer) {
         player.gadgets += PlayerGadget(gadget, 1)
