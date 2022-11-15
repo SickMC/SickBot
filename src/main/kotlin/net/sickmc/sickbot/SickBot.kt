@@ -10,7 +10,6 @@ import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Member
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.on
-import dev.kord.core.supplier.EntitySupplyStrategy
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
 import dev.kord.gateway.builder.RequestGuildMembersBuilder
@@ -40,10 +39,8 @@ object SickBot {
                 playing("on sickmc.net")
             }
 
-            mainGuild = kord.getGuild(Snowflake(config.getString("mainGuildID")), EntitySupplyStrategy.rest)
-                ?: error("Main Guild cannot be loaded")
-            staffGuild = kord.getGuild(Snowflake(config.getString("secondGuildID")), EntitySupplyStrategy.rest)
-                ?: error("Second guild cannot be loaded")
+            mainGuild = kord.getGuildOrThrow(Snowflake(config.getString("mainGuildID")))
+            staffGuild = kord.getGuildOrThrow(Snowflake(config.getString("secondGuildID")))
             mainGuild.getApplicationCommands().collect { app -> app.delete() }
             val builder: RequestGuildMembersBuilder.() -> Unit = { requestAllMembers() }
             mainGuild.requestMembers(builder).collect { event -> event.members.forEach { it.load() } }
@@ -51,6 +48,9 @@ object SickBot {
                 defaultMemberPermissions = Permissions(Permission.ManageMessages)
             }
             kord.createGuildMessageCommand(mainGuild.id, "update rank message") {
+                defaultMemberPermissions = Permissions(Permission.Administrator)
+            }
+            kord.createGuildUserCommand(mainGuild.id, "restart bot") {
                 defaultMemberPermissions = Permissions(Permission.Administrator)
             }
 
