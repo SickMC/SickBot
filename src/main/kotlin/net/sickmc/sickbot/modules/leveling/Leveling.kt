@@ -14,6 +14,7 @@ import dev.kord.gateway.PrivilegedIntent
 import dev.kord.rest.builder.message.create.UserMessageCreateBuilder
 import dev.kord.rest.builder.message.create.embed
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.filter
 import net.sickmc.sickapi.util.databaseScope
 import net.sickmc.sickbot.kord
 import net.sickmc.sickbot.mainGuild
@@ -89,7 +90,7 @@ private val activeVoiceJob = CoroutineScope(Dispatchers.IO + SupervisorJob()).la
     while (true) {
         delay(5.minutes)
         mainGuild.requestMembers().collect { event ->
-            event.members.forEach {
+            event.members.filter { it.getVoiceStateOrNull() != null && it.getVoiceState().valid() }.forEach {
                 val voiceState = it.getVoiceState()
                 if (!voiceState.valid()) return@collect
                 if (it.isBot) return@collect
