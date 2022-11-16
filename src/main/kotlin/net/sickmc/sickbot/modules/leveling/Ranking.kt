@@ -70,7 +70,7 @@ private suspend fun EmbedBuilder.generateRanking() {
     color(BotColors.Level)
     description = buildString {
         ranked.take(10).forEachIndexed { index, levelUser ->
-            append("> **${index + 1}.**  ${levelUser.snowflake.member().mention} - ${levelUser.points} <:sickball:975024822520283156>")
+            append("> **${index + 1}.**  <@${levelUser.snowflake}> - ${levelUser.points} <:sickball:975024822520283156>")
             append("\n")
         }
         append("*updates every minute*")
